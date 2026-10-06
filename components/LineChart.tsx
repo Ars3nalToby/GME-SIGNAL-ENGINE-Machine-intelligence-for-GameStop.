@@ -35,7 +35,7 @@ export default function LineChart({ series, fmtY, ariaLabel }: { series: Series[
   const ticks = [0, 1, 2, 3, 4].map((i) => v0 + ((v1 - v0) * i) / 4);
   return (
     <figure>
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel} className="mx-auto w-full max-w-[1100px]" preserveAspectRatio="xMidYMid meet">
+      <div className="scroll-x"><svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel} className="mx-auto w-full min-w-[680px] max-w-[1100px]" preserveAspectRatio="xMidYMid meet">
         {ticks.map((tv) => (
           <g key={tv}>
             <line x1={M.l} x2={W - M.r} y1={y(tv)} y2={y(tv)} stroke="#252b39" strokeWidth="1" />
@@ -65,7 +65,7 @@ export default function LineChart({ series, fmtY, ariaLabel }: { series: Series[
             </g>
           );
         })}
-      </svg>
+      </svg></div>
       <figcaption className="mono mt-1 flex flex-wrap gap-4 text-[11px] text-muted">
         {series.map((s) => <span key={s.id}><span className="mr-1.5 inline-block h-2 w-2 rounded-full align-middle" style={{ background: s.color }} aria-hidden />{s.label}</span>)}
         <span>Hover or tap a point for its source filing.</span>
