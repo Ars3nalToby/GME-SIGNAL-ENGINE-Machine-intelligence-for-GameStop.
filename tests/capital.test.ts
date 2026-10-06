@@ -31,6 +31,12 @@ describe("verify:capital", () => {
     const r = run({ verifiedAt: "2026-10-01", instruments: [{ name: "Synthetic Notes", principal: 1000, verifiedAt: "2026-10-01", sources: [src("name"), src("principal")] }] });
     expect(r.code).toBe(0);
   });
+  it("checks cappedCall and outstandingAsOf too", () => {
+    const r = run({ verifiedAt: "x", instruments: [{ name: null, cappedCall: "yes", outstandingAsOf: "2026-01-31", verifiedAt: "x", sources: [] }] });
+    expect(r.code).toBe(1);
+    expect(r.out).toContain('"cappedCall"');
+    expect(r.out).toContain('"outstandingAsOf"');
+  });
   it("rejects non-sec.gov source URLs", () => {
     const r = run({ verifiedAt: "x", instruments: [{ name: "N", verifiedAt: "x", sources: [{ field: "name", label: "blog", url: "https://example.com/x", accession: "a" }] }] });
     expect(r.code).toBe(1);

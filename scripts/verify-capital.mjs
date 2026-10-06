@@ -5,7 +5,7 @@ const file = process.argv[2] ?? "data/capital-structure.json";
 const data = JSON.parse(fs.readFileSync(file, "utf8"));
 const errors = [];
 
-const FIELDS = ["name", "type", "principal", "coupon", "maturity", "conversionRate", "conversionPrice", "conversionConditions", "capitalledCap", "repurchases", "outstanding"];
+const FIELDS = ["name", "type", "principal", "coupon", "maturity", "conversionRate", "conversionPrice", "conversionConditions", "cappedCall", "repurchases", "outstanding", "outstandingAsOf"];
 const sourced = (inst, field) => (inst.sources ?? []).some((s) => s.field === field && s.label && s.url && s.accession);
 const requireSource = (inst, field, label) => {
   const v = inst[field];

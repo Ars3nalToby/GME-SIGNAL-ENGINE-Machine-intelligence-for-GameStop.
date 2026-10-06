@@ -1,6 +1,5 @@
 import type { WireItem } from "@/lib/types";
-import { fmtBrisbane } from "@/lib/time";
-import { kindLabel } from "@/lib/format";
+import { fmtWhen, kindLabel } from "@/lib/format";
 import { safeHref } from "@/lib/url";
 
 /** Server-rendered, text-only row. Deterministic (absolute Brisbane time) so there is nothing to hydrate. */
@@ -10,7 +9,7 @@ export function CompactItem({ item, note }: { item: WireItem; note?: string }) {
     <li className="border-b border-[#1a2030] py-2.5 last:border-0">
       <div className="mono flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10.5px] tracking-[0.04em] text-muted">
         <span className="text-ink">{item.source}</span>
-        <time dateTime={item.publishedAt}>{fmtBrisbane(item.publishedAt)}</time>
+        <time dateTime={item.publishedAt}>{fmtWhen(item)}</time>
         <span>{kindLabel(item)}</span>
         {note && <span className="rounded border border-amber px-1.5 text-amber">{note}</span>}
         <span className={`score score-${item.signal} !cursor-default !px-1.5 !py-0 ml-auto`} title={item.scoreReasons.join(" · ")}>{item.signal.toUpperCase()} {item.score}</span>

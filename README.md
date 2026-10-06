@@ -36,8 +36,10 @@ Other commands: `npm run check` (typecheck + lint + tests) · `npm run build` ·
 | `X_POLL_SECONDS` | no | `300` (min 60) | Server TTL per handle. |
 | `X_INCLUDE_REPLIES` / `X_INCLUDE_REPOSTS` | no | `true` / `false` | Timeline `exclude` flags. |
 | `MARKET_DATA_PROVIDER` / `MARKET_DATA_API_KEY` | no | – | `finnhub` supported. Missing ⇒ `MARKET DATA NOT CONNECTED`. |
-| `DASHBOARD_PASSWORD` | recommended | – | HTTP Basic Auth on all pages and API routes (any username). **If unset the site is public and your position panel is visible to anyone with the URL.** |
+| `DASHBOARD_PASSWORD` | recommended | – | HTTP Basic Auth on all pages and API routes (any username). **If unset the site is public — and the position panel is then hidden by default (see `ALLOW_PUBLIC_POSITION`); everything else on the site is visible to anyone with the URL.** |
 | `POSITION_JSON` | no | – | Your holdings, e.g. `{"shares":{"Broker A":100},"warrants":{"Broker A":10},"warrantDeadlines":{"Broker A":"2026-10-27T17:00"}}`. Deadlines without an offset are read as Brisbane time; `null` = not set. Totals are computed. Put it only in `.env.local` / the host's env settings — never commit it. |
+| `ALLOW_PUBLIC_POSITION` | no | `0` | Without `DASHBOARD_PASSWORD` the position panel is **hidden**; set `1` only if you really want holdings visible on a public site. `/api/health` warns when exposed. |
+| `MARKET_WARRANT_SYMBOL` | no | guessed | Provider symbol for `GME WS`. If unset, `GME.WS` / `GMEWS` / `GME-WT` are tried and the page flags the symbol as a guess. |
 | `WATCH_COUNTERPARTY_TICKERS` | no | `EBAY` | M&A counterparties (resolved via SEC `company_tickers.json`). Add more, comma-separated. |
 | `DISPLAY_TIMEZONE` | no | `Australia/Brisbane` | Reserved; the UI shows Brisbane and New York explicitly. |
 | `IR_FEED_URL` | no | Q4 candidate | Override the IR press-release JSON endpoint once verified (see limitations). |
@@ -49,7 +51,7 @@ No variable is `NEXT_PUBLIC_`; secrets are only read in server modules (enforced
 
 - Every SEC request carries `SEC_USER_AGENT`, uses gzip, and passes a global limiter of **≤ 5 requests/second** (SEC's ceiling is 10). One retry with backoff on 429/5xx. A **403 is surfaced** with a hint (almost always a missing/invalid User-Agent).
 - Filing documents (Form 4 XML, 13D XML, `index.json`, SGML headers) are immutable, so they are cached **by accession number forever**; at most **10 uncached documents are fetched per refresh** (newest first) so cold starts stay fast. The rest fill in over the following refreshes (shown as `DETAILS LOADING`).
-- `?force=1` on any API route can only bypass a cache entry older than 30 s, so nobody — including a stranger with the URL — can hammer SEC or run up X costs. The UI's refresh button never bypasses server TTLs.
+- `?force=1` on any API route can only bypass a cache entry older than 30 s (and never an X entry inside its poll interval), so nobody — including a stranger with the URL — can hammer SEC or run up X costs. The UI's refresh button never bypasses server TTLs.
 
 ### SEC timestamps
 `acceptanceDateTime` carries a `Z` but its real zone has to be verified against an index page's "Accepted" time (Eastern). The app infers the zone from EDGAR's 06:00–22:00 ET acceptance window, honours `SEC_ACCEPTANCE_TZ`, and never shows a future timestamp. **Run `SEC_USER_AGENT="…" node scripts/verify-acceptance.mjs` once from a connected machine** and set `SEC_ACCEPTANCE_TZ` accordingly.

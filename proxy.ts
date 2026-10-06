@@ -8,10 +8,12 @@ import { NextResponse, type NextRequest } from "next/server";
 const digest = (s: string) => createHash("sha256").update(s).digest();
 
 export function checkBasicAuth(header: string | null, password: string): boolean {
-  if (!header?.startsWith("Basic ")) return false;
+  const m = header?.match(/^basic\s+(.+)$/i);
+  if (!m) return false;
   let decoded = "";
   try {
-    decoded = atob(header.slice(6).trim());
+    // credentials are UTF-8 bytes, not Latin-1 (atob alone would break non-ASCII passwords)
+    decoded = Buffer.from(m[1]!.trim(), "base64").toString("utf8");
   } catch {
     return false;
   }
@@ -29,5 +31,5 @@ export function proxy(req: NextRequest) {
 
 export const config = {
   // static build assets and the secret-free liveness probe stay open
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.svg|healthz).*)"],
+  matcher: ["/((?!_next/static/|_next/image|favicon\\.ico$|icon\\.svg$|healthz$).*)"],
 };

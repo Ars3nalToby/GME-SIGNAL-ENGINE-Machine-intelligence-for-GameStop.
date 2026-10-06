@@ -77,6 +77,8 @@ export type WireItem = {
   parseNote?: string;
   maLane?: "confirmed" | "reporting" | "rumour";
   officialStatement?: boolean;
+  /** the source gave a date but no time: show the date only, never a made-up clock time */
+  dateOnly?: boolean;
 };
 
 export type FeedResponse = {

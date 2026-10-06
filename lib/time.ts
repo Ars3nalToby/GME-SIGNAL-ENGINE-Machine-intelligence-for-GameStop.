@@ -100,6 +100,18 @@ export function filingDateToIso(filingDate: string): string | null {
   return d.isValid ? iso(d) : null;
 }
 
+/** like parseIrDate, but says whether the source carried a time of day */
+export function parseIrDateEx(raw: string): { iso: string; dateOnly: boolean } | null {
+  const iso = parseIrDate(raw);
+  return iso ? { iso, dateOnly: !/\d{1,2}:\d{2}/.test(raw) } : null;
+}
+
+/** "03 May 2026" in New York time (date-only values are US dates; converting them to Brisbane could shift the day) */
+export function fmtDateOnly(isoStr: string): string {
+  const d = DateTime.fromISO(isoStr, { zone: NY_ZONE, locale: "en-US" });
+  return d.isValid ? `${d.toFormat("dd LLL yyyy")} (date only)` : "—";
+}
+
 /** Q4 IR dates look like "10/07/2025 16:05:00" or "2025-10-07T16:05:00", Eastern time. */
 export function parseIrDate(raw: string): string | null {
   const s = raw.trim();
@@ -114,18 +126,20 @@ export function parseIrDate(raw: string): string | null {
 
 // ---------- NYSE session ----------
 
-export type NyseSession = { label: "Pre-market" | "Open" | "After-hours" | "Closed"; detail: string };
+export type NyseSession = { label: "Pre-market" | "Open" | "After-hours" | "Closed"; detail: string; /** false once the date is past the last year in the holiday list */ calendarKnown: boolean };
 
 export function nyseSession(nowMs: number, holidays: string[] = NYSE_HOLIDAYS): NyseSession {
   const ny = DateTime.fromMillis(nowMs, { zone: NY_ZONE });
   const date = ny.toISODate() ?? "";
-  if (ny.weekday >= 6) return { label: "Closed", detail: "weekend" };
-  if (holidays.includes(date)) return { label: "Closed", detail: "market holiday (per config)" };
+  const lastYear = holidays.reduce((m, h) => Math.max(m, Number(h.slice(0, 4))), 0);
+  const calendarKnown = lastYear > 0 && ny.year <= lastYear;
+  if (ny.weekday >= 6) return { label: "Closed", detail: "weekend", calendarKnown };
+  if (holidays.includes(date)) return { label: "Closed", detail: "market holiday (per config)", calendarKnown };
   const mins = ny.hour * 60 + ny.minute;
-  if (mins >= 4 * 60 && mins < 9 * 60 + 30) return { label: "Pre-market", detail: "04:00–09:30 ET" };
-  if (mins >= 9 * 60 + 30 && mins < 16 * 60) return { label: "Open", detail: "09:30–16:00 ET" };
-  if (mins >= 16 * 60 && mins < 20 * 60) return { label: "After-hours", detail: "16:00–20:00 ET" };
-  return { label: "Closed", detail: "outside extended hours" };
+  if (mins >= 4 * 60 && mins < 9 * 60 + 30) return { label: "Pre-market", detail: "04:00–09:30 ET", calendarKnown };
+  if (mins >= 9 * 60 + 30 && mins < 16 * 60) return { label: "Open", detail: "09:30–16:00 ET", calendarKnown };
+  if (mins >= 16 * 60 && mins < 20 * 60) return { label: "After-hours", detail: "16:00–20:00 ET", calendarKnown };
+  return { label: "Closed", detail: "outside extended hours", calendarKnown };
 }
 
 // ---------- Warrant expiry ----------

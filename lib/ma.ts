@@ -23,9 +23,11 @@ export function isMaItem(i: WireItem, re: RegExp, counterpartyCiks: string[] = [
   return re.test(`${i.title} ${i.summary ?? ""}`);
 }
 
+const isReplyOrRepost = (i: WireItem) => i.tags.includes("Reply") || i.tags.includes("Repost");
+
 export function laneOf(i: WireItem): Lane {
   if (i.sourceType === "sec" || i.sourceType === "ir") return "confirmed";
-  if (i.sourceType === "x") return i.handle === "gamestop" || i.handle === "ryancohen" ? "confirmed" : "rumour";
+  if (i.sourceType === "x") return (i.handle === "gamestop" || i.handle === "ryancohen") && !isReplyOrRepost(i) ? "confirmed" : "rumour";
   return i.newsTier === "t1" || i.newsTier === "t2" ? "reporting" : "rumour";
 }
 
@@ -42,6 +44,8 @@ export function buildMa(items: WireItem[], counterpartyNames: string[], counterp
   const out: MaView = { confirmed: [], reporting: [], rumour: [], timeline: [] };
   for (const i of items) {
     if (!isMaItem(i, re, counterpartyCiks)) continue;
+    // replies and reposts are not official statements: they stay on the wire but never appear in the M&A lanes
+    if (i.sourceType === "x" && isReplyOrRepost(i)) continue;
     const lane = laneOf(i);
     const copy = lane === "confirmed" && i.sourceType === "x" ? { ...i, officialStatement: true } : i;
     out[lane].push(copy);

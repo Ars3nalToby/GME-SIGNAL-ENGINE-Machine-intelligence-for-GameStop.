@@ -36,7 +36,7 @@ export function providerFromEnv(): MarketDataProvider {
 /** Warrant ticker spellings to try (provider symbology varies); the first that returns a quote wins. */
 export const WARRANT_SYMBOL_CANDIDATES = ["GME.WS", "GMEWS", "GME-WT"];
 
-export type MarketSnapshot = { gme: Quote | null; warrant: Quote | null; provider: string };
+export type MarketSnapshot = { gme: Quote | null; warrant: Quote | null; provider: string; warrantSymbolIsGuess: boolean };
 
 export async function loadMarket(opts: { force?: boolean; nowMs?: number } = {}): Promise<{ snapshot?: MarketSnapshot; health: SourceHealth }> {
   const nowMs = opts.nowMs ?? Date.now();
@@ -53,7 +53,8 @@ export async function loadMarket(opts: { force?: boolean; nowMs?: number } = {})
       async (): Promise<MarketSnapshot> => {
         const gme = await provider.quote("GME");
         let warrant: Quote | null = null;
-        for (const s of WARRANT_SYMBOL_CANDIDATES) {
+        const configured = getEnv().marketWarrantSymbol;
+        for (const s of configured ? [configured] : WARRANT_SYMBOL_CANDIDATES) {
           try {
             warrant = await provider.quote(s);
           } catch {
@@ -61,7 +62,7 @@ export async function loadMarket(opts: { force?: boolean; nowMs?: number } = {})
           }
           if (warrant) break;
         }
-        return { gme, warrant, provider: provider.name };
+        return { gme, warrant, provider: provider.name, warrantSymbolIsGuess: !configured };
       },
       { force: opts.force },
     );
@@ -70,6 +71,9 @@ export async function loadMarket(opts: { force?: boolean; nowMs?: number } = {})
     return { health: makeHealth({ id: "market", label: "Market data", itemCount: 0, nowMs, error: e, attemptedAt: nowMs }) };
   }
 }
+
+/** quotes older than this are flagged as stale on the page (market closed, or provider lagging) */
+export const QUOTE_STALE_MS = 24 * 3600_000;
 
 /** Facts only: intrinsic value and time value. */
 export function warrantMath(gme: number, strike: number, warrantPrice?: number | null) {

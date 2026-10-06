@@ -13,7 +13,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check": "npm run typecheck && npm run lint && npm run test",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run verify:capital",
     "verify:capital": "node scripts/verify-capital.mjs",
     "verify:bundle": "node scripts/verify-bundle.mjs",
     "smoke": "node scripts/smoke.mjs",

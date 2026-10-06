@@ -16,6 +16,7 @@ const EnvSchema = z.object({
   DISPLAY_TIMEZONE: z.string().default(BRISBANE_ZONE),
   IR_FEED_URL: z.string().optional(),
   SEC_ACCEPTANCE_TZ: z.string().default("auto"),
+  MARKET_WARRANT_SYMBOL: z.string().optional(),
 });
 
 export type Env = {
@@ -32,6 +33,9 @@ export type Env = {
   displayTz: string;
   irFeedUrl?: string;
   acceptanceTz: "auto" | "UTC" | "America/New_York";
+  marketWarrantSymbol?: string;
+  /** invalid optional settings that were ignored (defaults used) — reported in /api/health, never fatal */
+  problems: string[];
 };
 
 const blank = (v: string | undefined) => (v && v.trim() ? v.trim() : undefined);
@@ -39,7 +43,21 @@ const bool = (v: string) => !/^(0|false|no|off)$/i.test(v.trim());
 
 /** Server-only. Reads process.env on every call so tests/deploys can change it. */
 export function getEnv(src: Record<string, string | undefined> = process.env): Env {
-  const e = EnvSchema.parse(src);
+  // a bad optional value must never take the app down: drop the offending keys, use defaults, and report them
+  const problems: string[] = [];
+  const input = { ...src };
+  for (let i = 0; i < 6; i++) {
+    const r = EnvSchema.safeParse(input);
+    if (r.success) break;
+    for (const issue of r.error.issues) {
+      const k = String(issue.path[0] ?? "");
+      if (k && k in input) {
+        problems.push(`${k} is invalid (${issue.message}) — default used`);
+        delete input[k];
+      }
+    }
+  }
+  const e = EnvSchema.parse(Object.fromEntries(Object.entries(input).filter(([k]) => k in EnvSchema.shape)));
   const tz = e.SEC_ACCEPTANCE_TZ === "UTC" || e.SEC_ACCEPTANCE_TZ === "America/New_York" ? e.SEC_ACCEPTANCE_TZ : "auto";
   return {
     secUserAgent: blank(e.SEC_USER_AGENT),
@@ -55,5 +73,7 @@ export function getEnv(src: Record<string, string | undefined> = process.env): E
     displayTz: e.DISPLAY_TIMEZONE,
     irFeedUrl: blank(e.IR_FEED_URL),
     acceptanceTz: tz,
+    marketWarrantSymbol: blank(e.MARKET_WARRANT_SYMBOL),
+    problems,
   };
 }

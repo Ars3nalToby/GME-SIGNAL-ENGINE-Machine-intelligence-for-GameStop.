@@ -8,14 +8,19 @@ export const PUBLISHER_TIERS: Record<Tier, string[]> = {
   opinion: ["motley fool", "seeking alpha", "investorplace", "zacks", "24/7 wall st"],
 };
 
+const esc = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const OPINION_HINT = /\b(opinion|breakingviews|editorial|commentary|column|sponsored|press release)\b/i;
+const matchers: Record<Tier, RegExp> = Object.fromEntries(
+  (Object.keys(PUBLISHER_TIERS) as Tier[]).map((t) => [t, new RegExp(`(^|[^a-z0-9])(${PUBLISHER_TIERS[t].filter((n) => n !== "ap news").map(esc).join("|")})($|[^a-z0-9])`, "i")]),
+) as Record<Tier, RegExp>;
+
+/** Word-boundary match (so look-alike names don't inherit a tier); opinion-flavoured sections are demoted first. */
 export function tierOf(publisher: string | undefined | null): Tier {
-  const p = (publisher ?? "").toLowerCase().trim();
+  const p = (publisher ?? "").trim();
   if (!p) return "t3";
-  // check opinion first so e.g. "Yahoo Finance (Motley Fool)" isn't promoted
-  for (const tier of ["opinion", "t1", "t2", "t3"] as Tier[]) {
-    if (PUBLISHER_TIERS[tier].some((n) => (n === "ap news" ? p === "ap" || p.includes("ap news") : p.includes(n)))) return tier;
-  }
-  if (p === "ap") return "t1";
+  if (PUBLISHER_TIERS.opinion.some((n) => p.toLowerCase().includes(n)) || OPINION_HINT.test(p)) return "opinion";
+  if (/^(ap|ap news|associated press)$/i.test(p)) return "t1";
+  for (const tier of ["t1", "t2", "t3"] as Tier[]) if (matchers[tier].test(p)) return tier;
   return "t3";
 }
 

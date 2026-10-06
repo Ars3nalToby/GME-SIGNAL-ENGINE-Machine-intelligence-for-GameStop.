@@ -23,7 +23,7 @@ export default function Timeline({ items }: { items: WireItem[] }) {
           <ul>
             {g.rows.map((i) => (
               <li key={i.id} className="mono grid grid-cols-[44px_72px_78px_minmax(0,1fr)_auto] items-baseline gap-x-2 border-b border-[#1a2030] px-3 py-1.5 text-[12px] hover:bg-white/[0.02] max-md:grid-cols-[44px_minmax(0,1fr)_auto]">
-                <time dateTime={i.publishedAt} title={fmtNY(i.publishedAt)} className="text-muted">{fmtHm(i.publishedAt, BRISBANE_ZONE)}</time>
+                <time dateTime={i.publishedAt} title={fmtNY(i.publishedAt)} className="text-muted">{i.dateOnly ? "date" : fmtHm(i.publishedAt, BRISBANE_ZONE)}</time>
                 <span className="truncate text-muted max-md:hidden">{sourceShort(i)}</span>
                 <span className="truncate text-muted max-md:hidden">{kindLabel(i)}</span>
                 <a href={safeHref(i.url)} target="_blank" rel="noopener noreferrer" className="truncate font-sans text-[13px] text-ink hover:text-blue" title={i.title}>{i.title}</a>

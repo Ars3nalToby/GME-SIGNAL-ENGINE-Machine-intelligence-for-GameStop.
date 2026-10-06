@@ -28,11 +28,13 @@ export default function RcAlert({ items, lastSeenAt }: { items: WireItem[]; last
         const purchase = i.insiderClass === "purchase";
         const rows = purchase ? txns.filter((t) => t.code === "P") : txns.filter((t) => t.isWarrant && t.isDerivative);
         const a = aggregate(rows);
+        const strikes = new Set(rows.map((r) => r.exercisePrice ?? null));
+        const strike = strikes.size === 1 && !strikes.has(null) ? (rows[0]!.exercisePrice as number) : null; // one common strike only
         const last = [...txns].reverse().find((t) => !t.isDerivative && t.sharesOwnedAfter !== null);
         const isNew = lastSeenAt !== null && Date.parse(i.publishedAt) > lastSeenAt;
         const cells: [string, string][] = purchase
           ? [["SHARES", a.shares === null ? "UNPARSED" : fmtInt(a.shares)], ["AVG PRICE", a.avgPrice === null ? "UNPARSED" : fmtUsd(a.avgPrice)], ["TOTAL COST", a.total === null ? "UNPARSED" : fmtUsd(a.total, 0)], ["HOLDINGS AFTER", last ? `${fmtInt(last.sharesOwnedAfter)} (${last.directIndirect === "D" ? "direct" : "indirect"})` : "UNPARSED"]]
-          : [["WARRANTS EXERCISED", a.shares === null ? "UNPARSED" : fmtInt(a.shares)], ["EXERCISE PRICE", rows[0]?.exercisePrice != null ? fmtUsd(rows[0].exercisePrice) : "UNPARSED"], ["CASH COST", a.shares !== null && rows[0]?.exercisePrice != null ? fmtUsd(a.shares * rows[0].exercisePrice, 0) : "UNPARSED"], ["COMMON HOLDINGS AFTER", last ? `${fmtInt(last.sharesOwnedAfter)} (${last.directIndirect === "D" ? "direct" : "indirect"})` : "UNPARSED"]];
+          : [["WARRANTS EXERCISED", a.shares === null ? "UNPARSED" : fmtInt(a.shares)], ["EXERCISE PRICE", strike != null ? fmtUsd(strike) : "UNPARSED / mixed"], ["CASH COST", a.shares !== null && strike != null ? fmtUsd(a.shares * strike, 0) : "UNPARSED"], ["COMMON HOLDINGS AFTER", last ? `${fmtInt(last.sharesOwnedAfter)} (${last.directIndirect === "D" ? "direct" : "indirect"})` : "UNPARSED"]];
         return (
           <div key={i.id} className="panel border-red/70 border-l-[3px] border-l-red bg-red/[0.06] p-4">
             <div className="mono flex flex-wrap items-center gap-3 text-[11px] tracking-[0.12em]">

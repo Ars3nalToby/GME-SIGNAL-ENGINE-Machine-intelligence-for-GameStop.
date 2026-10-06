@@ -65,6 +65,7 @@ export function PositionPanel({ position, market }: { position: Position; market
       <WarrantCountdown />
       <div className="mt-3 border-t border-line pt-3">
         {position.status === "invalid" && <p className="mono text-[11px] text-red">{position.error}. See README → My Position.</p>}
+        {position.status === "hidden" && <p className="mono text-[11px] text-amber">Position hidden: this site has no password, so personal holdings are not shown. See README → My Position.</p>}
         {position.status === "empty" && <p className="mono text-[11px] text-muted">No position configured on the server (never committed) — see README → My Position.</p>}
         {position.status === "set" && (
           <table className="dt mono" aria-label="Holdings by venue">

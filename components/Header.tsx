@@ -29,8 +29,8 @@ export default function Header() {
         <div className="mono flex flex-wrap items-center gap-x-5 gap-y-1 text-[11px] text-muted" aria-label="Clocks">
           <span suppressHydrationWarning>BNE <b className="text-ink font-medium">{now ? fmtClock(now, BRISBANE_ZONE) : "--:--:--"}</b></span>
           <span suppressHydrationWarning>NYC <b className="text-ink font-medium">{now ? fmtClock(now, NY_ZONE) : "--:--:--"}</b></span>
-          <span title={session ? `NYSE ${session.detail}. Holidays only as listed in config.` : undefined}>
-            NYSE <b className="text-ink font-medium">{session ? session.label : "—"}</b>
+          <span title={session ? `NYSE ${session.detail}. Holidays only as listed in config${session.calendarKnown ? "" : " — the configured calendar has ended: holidays are NOT known for this date"}. Early closes are not modelled.` : undefined}>
+            NYSE <b className="text-ink font-medium">{session ? session.label : "—"}{session && !session.calendarKnown ? "*" : ""}</b>
           </span>
         </div>
 

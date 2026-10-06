@@ -2,6 +2,7 @@ import { buildFeed } from "@/lib/feed";
 import { getEnv } from "@/lib/config/env";
 import { json } from "@/lib/api";
 import { overallStatus } from "@/lib/health-view";
+import { positionExposed } from "@/lib/config/position";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -21,5 +22,9 @@ export async function GET() {
       dashboardPassword: !!env.dashboardPassword,
       positionJson: !!process.env.POSITION_JSON?.trim(),
     },
+    warnings: [
+      ...(positionExposed() ? ["position is configured and the site has no password (ALLOW_PUBLIC_POSITION is on): holdings are public"] : []),
+      ...env.problems,
+    ],
   });
 }

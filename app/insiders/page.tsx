@@ -20,13 +20,13 @@ export default async function InsidersPage() {
       if (f.holdings.length === 0) {
         // nothing parsed (yet): an honest placeholder row linking the filing
         rows.push({
-          key: `${f.accession}:0`, owner, roles, person, codeLabel: "", code: "", isPurchase: false, isWarrantEx: false, security: "", derivative: false, date: "", filed, shares: "—", price: "—", value: "—", after: "—", di: "D", form: f.form, filingUrl: f.url, indexUrl: f.indexUrl,
+          key: `${f.accession}:0`, owner, roles, person, codeLabel: "", code: "", isPurchase: false, isWarrantEx: false, security: "", derivative: false, date: "", filed, filedIso: f.filedAt, shares: "—", price: "—", value: "—", after: "—", di: "D", form: f.form, filingUrl: f.url, indexUrl: f.indexUrl,
           state: f.parseStatus === "pending" ? "pending" : "unparsed",
         });
       } else {
         f.holdings.forEach((h, i) =>
           rows.push({
-            key: `${f.accession}:h${i}`, owner, roles, person, codeLabel: "Holding reported", code: "—", isPurchase: false, isWarrantEx: false, security: h.securityTitle, derivative: h.isDerivative, date: "", filed, shares: "—", price: "—", value: "—", after: fmtInt(h.sharesOwned), di: h.directIndirect, form: f.form, filingUrl: f.url, indexUrl: f.indexUrl, state: "ok",
+            key: `${f.accession}:h${i}`, owner, roles, person, codeLabel: "Holding reported", code: "—", isPurchase: false, isWarrantEx: false, security: h.securityTitle, derivative: h.isDerivative, date: "", filed, filedIso: f.filedAt, shares: "—", price: "—", value: "—", after: fmtInt(h.sharesOwned), di: h.directIndirect, form: f.form, filingUrl: f.url, indexUrl: f.indexUrl, state: "ok",
           }),
         );
       }
@@ -35,13 +35,13 @@ export default async function InsidersPage() {
     f.txns.forEach((t, i) =>
       rows.push({
         key: `${f.accession}:${i}`, owner, roles, person: personKey(t.ownerName) ?? person, codeLabel: t.codeLabel, code: t.code,
-        isPurchase: t.code === "P", isWarrantEx: !!t.isWarrant && (t.code === "X" || t.code === "M"), security: t.securityTitle, derivative: t.isDerivative, date: t.date, filed,
+        isPurchase: t.code === "P", isWarrantEx: !!t.isWarrant && (t.code === "X" || t.code === "M"), security: t.securityTitle, derivative: t.isDerivative, date: t.date, filed, filedIso: f.filedAt,
         shares: fmtInt(t.shares), price: t.pricePerShare === null ? (t.priceNote ? "see footnote" : "—") : fmtPrice(t.pricePerShare), priceNote: t.priceIsAverage ? t.priceNote : t.pricePerShare === null ? t.priceNote : undefined,
         value: t.value === null ? "—" : fmtUsd(t.value, 0), after: fmtInt(t.sharesOwnedAfter), di: t.directIndirect, form: f.form, filingUrl: f.url, indexUrl: f.indexUrl, state: t.parseStatus === "ok" ? "ok" : "partial",
       }),
     );
   }
-  rows.sort((a, b) => (b.date || b.filed).localeCompare(a.date || a.filed));
+  rows.sort((a, b) => (b.date || b.filedIso.slice(0, 10)).localeCompare(a.date || a.filedIso.slice(0, 10)) || b.filedIso.localeCompare(a.filedIso));
 
   const rcBuys = p.filings.filter((f) => f.people.includes("ryan_cohen")).flatMap((f) => f.txns.filter((t) => t.code === "P").map((t) => ({ t, f }))).sort((a, b) => a.t.date.localeCompare(b.t.date));
 

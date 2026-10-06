@@ -15,6 +15,7 @@ export type InsiderRow = {
   derivative: boolean;
   date: string;
   filed: string;
+  filedIso: string;
   shares: string;
   price: string;
   priceNote?: string;

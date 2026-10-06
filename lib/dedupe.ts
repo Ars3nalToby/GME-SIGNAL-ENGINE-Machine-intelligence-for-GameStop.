@@ -11,7 +11,7 @@ function better(a: WireItem, b: WireItem): boolean {
   const ta = tierRank[a.newsTier ?? "t3"] ?? 0;
   const tb = tierRank[b.newsTier ?? "t3"] ?? 0;
   if (ta !== tb) return ta > tb;
-  return Date.parse(a.publishedAt) <= Date.parse(b.publishedAt);
+  return Date.parse(a.publishedAt) < Date.parse(b.publishedAt);
 }
 
 const outletOf = (i: WireItem) => i.outlet ?? i.source;
@@ -64,20 +64,20 @@ export function dedupe(input: WireItem[]): WireItem[] {
   // 3) near-duplicate news clusters (Jaccard ≥ 0.75 within 48h)
   const news = out.filter((i) => i.sourceType === "news").sort((a, b) => (better(a, b) ? -1 : 1));
   const reps: { item: WireItem; toks: Set<string> }[] = [];
-  const dropped = new Set<string>();
+  const dropped = new Set<WireItem>(); // by identity: news ids are hash(title), so equal ids must not drop the representative
   for (const it of news) {
     const toks = tokenSet(normalizeTitle(it.title));
     const rep = reps.find((r) => Math.abs(Date.parse(r.item.publishedAt) - Date.parse(it.publishedAt)) <= 48 * H && jaccard(r.toks, toks) >= 0.75);
     if (rep) {
       fold(rep.item, it);
-      dropped.add(it.id);
+      dropped.add(it);
     } else reps.push({ item: it, toks });
   }
   // ids must be unique (they are React keys and saved-item keys): news ids are hash(title), so the same
   // headline on two different days would collide — keep the first (highest-ranked) occurrence
   const seenIds = new Set<string>();
   const final = out.filter((i) => {
-    if (dropped.has(i.id) || seenIds.has(i.id)) return false;
+    if (dropped.has(i) || seenIds.has(i.id)) return false;
     seenIds.add(i.id);
     return true;
   });

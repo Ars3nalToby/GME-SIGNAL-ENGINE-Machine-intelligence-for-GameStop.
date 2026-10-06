@@ -1,5 +1,9 @@
 import type { WireItem } from "./types";
 import type { Tier } from "./config/publishers";
+import { fmtBrisbane, fmtDateOnly } from "./time";
+
+/** absolute time for an item: Brisbane clock time, or just the date when the source had no time */
+export const fmtWhen = (i: Pick<WireItem, "publishedAt" | "dateOnly">, withYear = false) => (i.dateOnly ? fmtDateOnly(i.publishedAt) : fmtBrisbane(i.publishedAt, withYear));
 
 /** short label for the "form / type" column */
 export function kindLabel(i: WireItem): string {

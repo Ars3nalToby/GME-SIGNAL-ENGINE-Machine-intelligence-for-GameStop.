@@ -144,7 +144,7 @@ export async function loadX(opts: { force?: boolean; nowMs?: number } = {}): Pro
               throw e;
             }
           },
-          { force: opts.force },
+          { force: opts.force, minForceAgeMs: env.xPollSeconds * 1000 }, // force can never beat the poll interval: X bills per post
         );
       }),
     );

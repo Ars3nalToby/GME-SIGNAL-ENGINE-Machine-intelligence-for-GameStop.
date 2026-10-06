@@ -14,7 +14,7 @@ import { makeHealth } from "../health";
 import { hash, normalizeUrl } from "../normalize";
 import { scoreIr } from "../scoring";
 import { htmlToText, truncate } from "../text";
-import { parseIrDate } from "../time";
+import { parseIrDateEx } from "../time";
 import { peopleIn } from "../people";
 import type { SourceResult, WireItem } from "../types";
 
@@ -34,7 +34,7 @@ const Q4Item = z
   .passthrough();
 const Q4Payload = z.union([z.object({ GetPressReleaseListResult: z.array(Q4Item) }).passthrough(), z.array(Q4Item)]);
 
-export type IrEntry = { title: string; url: string; date?: string; summary?: string; kind: "news" | "filing" | "document" | "link" };
+export type IrEntry = { title: string; url: string; date?: string; dateOnly?: boolean; summary?: string; kind: "news" | "filing" | "document" | "link" };
 
 export function absUrl(href: string, base = IR_BASE): string | undefined {
   try {
@@ -54,9 +54,10 @@ export function parseIrFeed(json: unknown): IrEntry[] {
     const title = htmlToText(r.Headline ?? r.Title);
     const url = r.LinkToDetailPage ? absUrl(r.LinkToDetailPage) : undefined;
     if (!title || !url) continue;
-    const date = r.PressReleaseDate ? parseIrDate(r.PressReleaseDate) ?? undefined : undefined;
+    const pd = r.PressReleaseDate ? parseIrDateEx(r.PressReleaseDate) : null;
+    const date = pd?.iso;
     const summary = htmlToText(r.ShortBody ?? r.ShortDescription ?? r.Subheadline);
-    out.push({ title, url, date, summary: summary ? truncate(summary, 280) : undefined, kind: "news" });
+    out.push({ title, url, date, dateOnly: pd?.dateOnly, summary: summary ? truncate(summary, 280) : undefined, kind: "news" });
   }
   if (list.length > 0 && out.length === 0) throw new Error("IR feed items had no headline/link fields");
   return out;
@@ -113,12 +114,12 @@ const DATE_RES: RegExp[] = [
 ];
 const GENERIC = /^(read more|view|view all|more|home|download|learn more|click here|pdf|rss|sign up|print|share|email|next|previous|skip to .*)$/i;
 
-function findDate(text: string): string | undefined {
+function findDate(text: string): { iso: string; dateOnly: boolean } | undefined {
   for (const re of DATE_RES) {
     const m = text.match(re);
     if (m) {
-      const iso = parseIrDate(m[0].replace(/\./g, "").replace("Sept", "Sep"));
-      if (iso) return iso;
+      const d = parseIrDateEx(m[0].replace(/\./g, "").replace("Sept", "Sep"));
+      if (d) return d;
     }
   }
   return undefined;
@@ -136,16 +137,24 @@ export function parseIrPage(html: string, baseUrl: string): IrEntry[] {
     const host = new URL(url).host;
     const path = new URL(url).pathname.toLowerCase();
     const kind: IrEntry["kind"] = /sec\.gov$/.test(host) ? "filing" : /news-release|press-release/.test(path) ? "news" : /\.(pdf|docx?|xlsx?)$|static-files|\/documents?\//.test(path) ? "document" : "link";
-    let date: string | undefined;
-    let ctx = a.parent();
-    for (let i = 0; i < 3 && ctx.length && !date; i++) {
-      const t = ctx.text().replace(/\s+/g, " ").trim();
-      if (t.length <= 400) date = findDate(t);
-      ctx = ctx.parent();
+    // a date counts only when it sits in the link's OWN row/list item: walking further up could attach a
+    // neighbouring entry's date (parse-or-admit: no date is better than a wrong one)
+    const row = a.closest("li, tr, article");
+    let scope = "";
+    if (row.length) {
+      // a row with several real links gives its date to the first one only (the others are ambiguous)
+      const links = row.find("a[href]").filter((_, el) => $(el).text().replace(/\s+/g, " ").trim().length >= 12);
+      if (links.length <= 1 || links.first().is(a)) scope = row.text();
+    } else {
+      // no row wrapper: only the link's own text and its sibling <time>/date elements
+      scope = `${a.text()} ${a.siblings("time, .date, [class*='date']").text()}`;
     }
+    const t = scope.replace(/\s+/g, " ").trim();
+    const found = t.length <= 400 ? findDate(t) : undefined;
+    const date = found?.iso;
     if (kind === "link" && !date) return;
     const key = normalizeUrl(url);
-    if (!out.has(key)) out.set(key, { title, url, date, kind });
+    if (!out.has(key)) out.set(key, { title, url, date, dateOnly: found?.dateOnly, kind });
   });
   return [...out.values()];
 }
@@ -185,6 +194,7 @@ export function irEntryToItem(e: IrEntry, nowIso: string, tags: string[] = []): 
     title: e.title,
     summary: e.summary,
     publishedAt: e.date,
+    dateOnly: e.dateOnly,
     fetchedAt: nowIso,
     url: e.url,
     people: peopleIn(text),

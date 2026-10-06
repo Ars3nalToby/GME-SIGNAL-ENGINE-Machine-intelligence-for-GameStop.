@@ -51,7 +51,7 @@ export default function ItemCard({ item, saved, onToggleSave, isNew }: { item: W
     <article className={`panel border-l-[3px] ${rule} p-3.5`} aria-label={item.title}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <span className="mono text-[11px] tracking-[0.04em] text-muted">
-          <span className="text-ink">{item.source}</span> · <Age iso={item.publishedAt} />
+          <span className="text-ink">{item.source}</span> · <Age iso={item.publishedAt} dateOnly={item.dateOnly} />
         </span>
         {isNew && <span className="mono rounded bg-red px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.1em]">NEW</span>}
         <span className="mono ml-auto text-[11px] font-medium tracking-[0.1em] text-muted">{kindLabel(item)}</span>

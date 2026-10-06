@@ -10,7 +10,7 @@ const PositionSchema = z.object({
 });
 
 export type Position = {
-  status: "set" | "empty" | "invalid";
+  status: "set" | "empty" | "invalid" | "hidden";
   error?: string;
   venues: string[];
   shares: Record<string, number>;
@@ -39,4 +39,23 @@ export function readPosition(raw: string | undefined = process.env.POSITION_JSON
   const totalWarrants = sum(warrants);
   if (venues.length === 0 || (totalShares === 0 && totalWarrants === 0)) return { ...empty, venues, shares, warrants, warrantDeadlines };
   return { status: "set", venues, shares, warrants, warrantDeadlines, totalShares, totalWarrants };
+}
+
+/**
+ * What pages may render. Holdings are personal: without DASHBOARD_PASSWORD the site is public, so the position is
+ * hidden unless the owner explicitly opts in with ALLOW_PUBLIC_POSITION=1.
+ */
+export function readPositionForRender(env: Record<string, string | undefined> = process.env): Position {
+  const p = readPosition(env.POSITION_JSON);
+  const protectedSite = !!env.DASHBOARD_PASSWORD?.trim();
+  const optIn = /^(1|true|yes)$/i.test((env.ALLOW_PUBLIC_POSITION ?? "").trim());
+  if (p.status === "empty" || protectedSite || optIn) return p;
+  return { status: "hidden", venues: [], shares: {}, warrants: {}, warrantDeadlines: {}, totalShares: 0, totalWarrants: 0 };
+}
+
+/** configured but would be public: surfaced as a warning in /api/health */
+export function positionExposed(env: Record<string, string | undefined> = process.env): boolean {
+  const configured = readPosition(env.POSITION_JSON).status === "set";
+  const protectedSite = !!env.DASHBOARD_PASSWORD?.trim();
+  return configured && !protectedSite && /^(1|true|yes)$/i.test((env.ALLOW_PUBLIC_POSITION ?? "").trim());
 }

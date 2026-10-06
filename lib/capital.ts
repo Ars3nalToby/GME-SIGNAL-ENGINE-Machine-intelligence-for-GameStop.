@@ -44,3 +44,24 @@ export function newerFilingAvailable(verifiedAt: string | null, latestPeriodicIs
   if (!verifiedAt || !latestPeriodicIso) return false;
   return Date.parse(latestPeriodicIso) > Date.parse(verifiedAt);
 }
+
+export const INSTRUMENT_FIELDS = ["name", "type", "principal", "coupon", "maturity", "conversionRate", "conversionPrice", "conversionConditions", "cappedCall", "repurchases", "outstanding", "outstandingAsOf"] as const;
+export type SourcedField = (typeof INSTRUMENT_FIELDS)[number];
+
+type Src = z.infer<typeof Source>;
+export const sourceFor = (i: { sources: Src[] }, field: string): Src | undefined => i.sources.find((s) => s.field === field && s.label && s.url && s.accession);
+
+/** A value counts only if a source backs it. Anything else is withheld from the page (and listed). */
+export function sourcedValue<T>(i: { sources: Src[] } & Record<string, unknown>, field: string): { value: T | null; src?: Src; unsourced: boolean } {
+  const v = (i[field] ?? null) as T | null;
+  if (v === null) return { value: null, unsourced: false };
+  const src = sourceFor(i, field);
+  return src ? { value: v, src, unsourced: false } : { value: null, unsourced: true };
+}
+
+/** shares = outstanding ÷ $1,000 × rate, computed only from two sourced inputs */
+export function sourcedPossibleShares(i: Instrument): number | null {
+  const o = sourcedValue<number>(i, "outstanding");
+  const r = sourcedValue<number>(i, "conversionRate");
+  return o.value == null || r.value == null ? null : (o.value / 1000) * r.value;
+}

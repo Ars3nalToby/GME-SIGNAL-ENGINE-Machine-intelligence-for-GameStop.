@@ -1,11 +1,11 @@
 import WarrantCountdown from "@/components/WarrantCountdown";
 import { CompactItem, PageTitle } from "@/components/CompactItem";
 import { buildFeed } from "@/lib/feed";
-import { readPosition } from "@/lib/config/position";
+import { readPositionForRender } from "@/lib/config/position";
 import { WARRANT_TERMS } from "@/lib/config/watch";
-import { loadMarket, warrantMath } from "@/lib/sources/market";
-import { fmtBrisbane, parseDeadline } from "@/lib/time";
-import { fmtInt, fmtUsd } from "@/lib/format";
+import { loadMarket, QUOTE_STALE_MS, warrantMath } from "@/lib/sources/market";
+import { fmtBrisbane, fmtExpiryNY, parseDeadline } from "@/lib/time";
+import { fmtInt, fmtUsd, fmtWhen } from "@/lib/format";
 import { safeHref } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ const ADJUST = /(warrants?[^.]{0,120}(adjust|exercise price|exercise rate|anti-d
 
 export default async function WarrantsPage() {
   const feed = await buildFeed();
-  const position = readPosition();
+  const position = readPositionForRender();
   const m = await loadMarket();
   const price = WARRANT_TERMS.exercisePriceUsd;
   const rate = WARRANT_TERMS.sharesPerWarrant;
@@ -31,7 +31,7 @@ export default async function WarrantsPage() {
         <section className="panel p-4" aria-label="Expiry">
           <h3 className="panel-title mb-2">Expiry</h3>
           <WarrantCountdown big />
-          <p className="mono mt-3 text-[11px] leading-relaxed text-muted">Legal expiry is 5:00 pm New York time. Broker and agent instruction deadlines are usually earlier — set them in POSITION_JSON → warrantDeadlines.</p>
+          <p className="mono mt-3 text-[11px] leading-relaxed text-muted">Legal expiry per config: {fmtExpiryNY()} (New York time). Broker and agent instruction deadlines are usually earlier — set them in POSITION_JSON → warrantDeadlines.</p>
         </section>
         <section className="panel p-4" aria-label="Terms">
           <h3 className="panel-title mb-2">Terms (config)</h3>
@@ -47,7 +47,7 @@ export default async function WarrantsPage() {
       <section className="mt-6" aria-labelledby="mech">
         <h3 id="mech" className="panel-title mb-2">Mechanics for my warrants (computed from POSITION_JSON)</h3>
         {position.status !== "set" ? (
-          <p className="panel p-4 text-[13px] text-muted">{position.status === "invalid" ? `${position.error}.` : "No position configured."} Set POSITION_JSON on the server (never committed) to see per-venue mechanics.</p>
+          <p className="panel p-4 text-[13px] text-muted">{position.status === "invalid" ? `${position.error}.` : position.status === "hidden" ? "Position hidden — this site has no DASHBOARD_PASSWORD, so personal holdings are not shown (set a password, or ALLOW_PUBLIC_POSITION=1 to opt in)." : "No position configured."} Set POSITION_JSON on the server (never committed) to see per-venue mechanics.</p>
         ) : (
           <div className="panel scroll-x">
             <table className="dt min-w-[700px]">
@@ -82,10 +82,11 @@ export default async function WarrantsPage() {
               <tr><td className="text-muted">GME ({m.snapshot.provider}{m.snapshot.gme?.asOf ? `, as of ${fmtBrisbane(m.snapshot.gme.asOf)}` : ""})</td><td className="mono text-right">{fmtUsd(gme)}</td></tr>
               <tr><td className="text-muted">Intrinsic value per warrant = max(0, GME − strike)</td><td className="mono text-right">{fmtUsd(math!.intrinsic)}</td></tr>
               {position.status === "set" && <tr><td className="text-muted">Intrinsic value, all my warrants</td><td className="mono text-right">{fmtUsd(math!.intrinsic * position.totalWarrants * rate, 2)}</td></tr>}
-              <tr><td className="text-muted">{WARRANT_TERMS.symbol} quote</td><td className="mono text-right">{wq == null ? <span className="text-amber">WARRANT QUOTE NOT AVAILABLE</span> : fmtUsd(wq)}</td></tr>
+              <tr><td className="text-muted">{WARRANT_TERMS.symbol} quote{m.snapshot.warrant ? ` — provider symbol "${m.snapshot.warrant.symbol}"${m.snapshot.warrantSymbolIsGuess ? " (a guessed spelling: verify it is the warrant)" : " (configured)"}${m.snapshot.warrant.asOf ? `, as of ${fmtBrisbane(m.snapshot.warrant.asOf)}` : ""}` : ""}</td><td className="mono text-right">{wq == null ? <span className="text-amber">WARRANT QUOTE NOT AVAILABLE</span> : fmtUsd(wq)}</td></tr>
               {math!.timeValue != null && <tr><td className="text-muted">Time value = warrant price − intrinsic</td><td className="mono text-right">{fmtUsd(math!.timeValue)}</td></tr>}
             </tbody></table>
           )}
+          {m.snapshot && [m.snapshot.gme, m.snapshot.warrant].some((q) => q?.asOf && Date.parse(feed.generatedAt) - Date.parse(q.asOf) > QUOTE_STALE_MS) && <p className="mono mt-2 text-[11px] text-amber">STALE QUOTE — the provider&apos;s timestamp is more than 24h old (market closed or provider lagging).</p>}
           <p className="mono mt-2 text-[11px] text-muted">Quotes come from a third-party provider and may be delayed; they are not a recommendation.</p>
         </div>
       </section>
@@ -101,7 +102,7 @@ export default async function WarrantsPage() {
         <ul className="panel divide-y divide-[#1a2030]">
           {irPage.length === 0 && <li className="p-4 text-center text-[12px] text-muted">{feed.irPages?.errors.warrants ? `IR page unavailable — ${feed.irPages.errors.warrants}` : "Nothing extracted from the IR page."}</li>}
           {irPage.map((e) => (
-            <li key={e.url} className="p-3 text-[13px]"><a className="hover:text-blue" href={safeHref(e.url)} target="_blank" rel="noopener noreferrer">{e.title} ↗</a>{e.date && <span className="mono ml-2 text-[11px] text-muted">{fmtBrisbane(e.date, true)}</span>}<span className="tag ml-2">{e.kind}</span></li>
+            <li key={e.url} className="p-3 text-[13px]"><a className="hover:text-blue" href={safeHref(e.url)} target="_blank" rel="noopener noreferrer">{e.title} ↗</a>{e.date && <span className="mono ml-2 text-[11px] text-muted">{fmtWhen({ publishedAt: e.date, dateOnly: e.dateOnly }, true)}</span>}<span className="tag ml-2">{e.kind}</span></li>
           ))}
         </ul>
       </section>

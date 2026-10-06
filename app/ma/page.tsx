@@ -1,7 +1,7 @@
 import { CompactItem, PageTitle } from "@/components/CompactItem";
 import { buildFeed } from "@/lib/feed";
 import { buildMa } from "@/lib/ma";
-import { fmtBrisbane } from "@/lib/time";
+import { fmtWhen } from "@/lib/format";
 import { safeHref } from "@/lib/url";
 import type { WireItem } from "@/lib/types";
 
@@ -28,7 +28,7 @@ function Lane({ title, tone, blurb, items }: { title: string; tone: string; blur
 export default async function MaPage() {
   const feed = await buildFeed();
   const cps = feed.secBundle?.counterparties ?? [];
-  const names = cps.length ? cps.flatMap((c) => [c.name, c.ticker]) : ["eBay"];
+  const names = cps.flatMap((c) => [c.name, c.ticker]);
   const view = buildMa(feed.items, names, cps.map((c) => c.cik));
   const doc = feed.irPages?.ebay ?? [];
   const sec = feed.sources.find((s) => s.id === "sec");
@@ -44,7 +44,7 @@ export default async function MaPage() {
           {view.timeline.length === 0 && <li className="p-6 text-center text-[12px] text-muted">No confirmed M&A events on the wire. 8-K relevance cannot be judged from the filing list alone — use the IR eBay page list below.</li>}
           {view.timeline.map((i) => (
             <li key={i.id} className="grid grid-cols-[132px_minmax(0,1fr)] gap-3 p-3 max-sm:grid-cols-1">
-              <time dateTime={i.publishedAt} className="mono text-[11.5px] text-muted">{fmtBrisbane(i.publishedAt, true)}</time>
+              <time dateTime={i.publishedAt} className="mono text-[11.5px] text-muted">{fmtWhen(i, true)}</time>
               <div>
                 <a className="text-[13.5px] font-medium hover:text-blue" href={safeHref(i.url)} target="_blank" rel="noopener noreferrer">{i.title} ↗</a>
                 <div className="mono text-[10.5px] text-muted">{i.source} · {i.sourceType === "sec" ? "primary filing" : "official release"}</div>
@@ -68,7 +68,7 @@ export default async function MaPage() {
             <li key={e.url} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 p-3 text-[13px]">
               <span className="tag">{e.kind}</span>
               <a className="min-w-0 flex-1 hover:text-blue" href={safeHref(e.url)} target="_blank" rel="noopener noreferrer">{e.title} ↗</a>
-              {e.date && <time dateTime={e.date} className="mono text-[11px] text-muted">{fmtBrisbane(e.date, true)}</time>}
+              {e.date && <time dateTime={e.date} className="mono text-[11px] text-muted">{fmtWhen({ publishedAt: e.date, dateOnly: e.dateOnly }, true)}</time>}
             </li>
           ))}
         </ul>

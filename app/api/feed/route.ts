@@ -9,8 +9,8 @@ export async function GET(req: Request) {
   try {
     const { items, sources, generatedAt, xWatch, xConnected } = await buildFeed({ force: wantsForce(req) });
     return json({ items, sources, generatedAt, xWatch, xConnected });
-  } catch (e) {
+  } catch {
     // buildFeed isolates every source; reaching here means a bug, not a source outage
-    return json({ items: [], sources: [], generatedAt: new Date().toISOString(), xWatch: [], xConnected: false, error: e instanceof Error ? e.message : "feed failed" }, 500);
+    return json({ items: [], sources: [], generatedAt: new Date().toISOString(), xWatch: [], xConnected: false, error: "feed failed" }, 500);
   }
 }

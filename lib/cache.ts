@@ -59,7 +59,11 @@ export class TtlCache {
     if (running) return running as Promise<CacheResult<T>>;
 
     const fail = this.fails.get(key);
-    if (!entry && fail && t - fail.at < ERROR_BACKOFF_MS) throw fail.error;
+    if (fail && t - fail.at < ERROR_BACKOFF_MS) {
+      // an upstream that just failed is not retried immediately — neither with nor without a stale copy
+      if (!entry) throw fail.error;
+      return { value: entry.value, fetchedAt: entry.at, stale: true, error: fail.error.message, fromCache: true, latencyMs: entry.latencyMs };
+    }
 
     const p = (async (): Promise<CacheResult<T>> => {
       this.attempts.set(key, this.now());

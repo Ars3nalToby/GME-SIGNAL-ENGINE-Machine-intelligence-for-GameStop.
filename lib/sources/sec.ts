@@ -61,6 +61,7 @@ export type SecRow = {
   description?: string;
   reportDate?: string;
   publishedAt: string; // ISO UTC
+  dateOnly?: boolean; // no acceptance time was available: only the filing date is known
 };
 
 export function parseSubmissions(json: unknown, listCik: string, counterparty?: string): { name: string; rows: Omit<SecRow, "publishedAt">[] } {
@@ -96,7 +97,7 @@ export function resolveRowTimes(rows: Omit<SecRow, "publishedAt">[], configured:
     // still in the future under both readings ⇒ the stamp is unreliable: never show a filing from the future
     if (dt && dt.toMillis() > nowMs) dt = DateTime.fromMillis(nowMs, { zone: "UTC" });
     const publishedAt = dt ? iso(dt) : filingDateToIso(r.filingDate) ?? new Date(nowMs).toISOString();
-    return { ...r, publishedAt };
+    return { ...r, publishedAt, dateOnly: dt ? undefined : true };
   });
   return { rows: out, zone, basis };
 }
@@ -209,7 +210,7 @@ async function enrich(rows: SecRow[], form345Window: Set<string>): Promise<{ att
 
 // ---------------- item building ----------------
 
-export type SecContext = { gmeCik: string; counterparties: Counterparty[]; nowIso: string };
+export type SecContext = { gmeCik: string; counterparties: Counterparty[]; nowIso: string; form345Window?: Set<string> };
 
 type Built = { item: WireItem; form4?: Form4Parse; summary?: Form4Summary; sched13?: Sched13Parse };
 
@@ -250,6 +251,7 @@ export function buildSecItem(row: SecRow, ctx: SecContext): Built {
     title: `${F} — ${label}`,
     summary: `${label}. Filed ${row.filingDate}.`,
     publishedAt: row.publishedAt,
+    dateOnly: row.dateOnly,
     fetchedAt: ctx.nowIso,
     url: primary,
     altLinks,
@@ -271,10 +273,16 @@ export function buildSecItem(row: SecRow, ctx: SecContext): Built {
   if (isOwnershipForm(F)) {
     const enr = get("form4", `f4:${row.accession}`);
     form4 = enr?.parse;
-    const pending = !enr && !!row.primaryDocument && isXmlDoc(row.primaryDocument);
+    const inWindow = !ctx.form345Window || ctx.form345Window.has(row.accession) || row.listCik !== ctx.gmeCik;
+    const pending = !enr && inWindow && !!row.primaryDocument && isXmlDoc(row.primaryDocument);
+    const outside = !enr && !inWindow;
     summary = summarizeForm4(form4);
     base.insiderClass = pending ? "pending" : classifyForm4(form4);
-    if (pending) {
+    if (outside) {
+      base.title = `FORM ${F} — not parsed (older than the latest ${FORM345_WINDOW} insider filings) — open filing`;
+      base.summary = "Older insider filing: only the newest 60 are parsed. Open the filing for details.";
+      base.parseNote = "unparsed";
+    } else if (pending) {
       base.title = `FORM ${F} · details loading — open filing`;
       base.summary = "Insider filing on the wire; its XML is parsed in the background (≤10 documents per refresh).";
       base.parseNote = "pending";
@@ -347,7 +355,8 @@ export function buildSecItem(row: SecRow, ctx: SecContext): Built {
         .map((p) => `${p.name}: ${p.aggregateShares !== null ? `${p.aggregateShares.toLocaleString("en-US")} sh` : "shares UNPARSED"}${p.percentOfClass !== null ? ` · ${p.percentOfClass}% of class` : ""}`);
       base.summary = `Reported beneficial ownership${sched13.dateOfEvent ? ` (event date ${sched13.dateOfEvent})` : ""} — ${bits.join("; ")}. May include securities acquirable within 60 days; this is not the same as shares owned.`;
     } else base.summary = "Beneficial ownership report. Open the filing for details.";
-    const subjCounterparty = (subjectCik && ctx.counterparties.some((c) => c.cik === subjectCik)) || (!subjectCik && !!row.counterparty);
+    // only a *parsed* subject counts; a filing merely sitting in a counterparty's list could equally be filed by it
+    const subjCounterparty = !!subjectCik && ctx.counterparties.some((c) => c.cik === subjectCik);
     scoreInput = { form: F, filerPerson: filerKey, subjectIsCounterparty: !!subjCounterparty };
     tags.add("Ownership");
     if (subjCounterparty) tags.add("M&A");
@@ -444,7 +453,7 @@ export async function buildSecBundle(env: Env, nowMs: number, force: boolean): P
   const stats = await enrich(rows, window);
   if (stats.failed) notes.push(`${stats.failed} filing document(s) failed: ${stats.lastError}`);
 
-  const ctx: SecContext = { gmeCik, counterparties, nowIso: new Date(nowMs).toISOString() };
+  const ctx: SecContext = { gmeCik, counterparties, nowIso: new Date(nowMs).toISOString(), form345Window: window };
   const built = rows.map((r) => ({ row: r, b: buildSecItem(r, ctx) }));
   const forms345: ParsedFiling[] = [];
   const sched13: Parsed13[] = [];
