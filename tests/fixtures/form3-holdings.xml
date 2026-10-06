@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!-- SYNTHETIC TEST FIXTURE: not a real filing -->
+<ownershipDocument>
+  <documentType>3</documentType>
+  <periodOfReport>2026-08-01</periodOfReport>
+  <issuer><issuerCik>0001326380</issuerCik><issuerName>GameStop Corp.</issuerName><issuerTradingSymbol>GME</issuerTradingSymbol></issuer>
+  <reportingOwner>
+    <reportingOwnerId><rptOwnerCik>0000000004</rptOwnerCik><rptOwnerName>Cheng Lawrence</rptOwnerName></reportingOwnerId>
+    <reportingOwnerRelationship><isDirector>1</isDirector></reportingOwnerRelationship>
+  </reportingOwner>
+  <nonDerivativeTable>
+    <nonDerivativeHolding>
+      <securityTitle><value>Class A Common Stock</value></securityTitle>
+      <postTransactionAmounts><sharesOwnedFollowingTransaction><value>5000</value></sharesOwnedFollowingTransaction></postTransactionAmounts>
+      <ownershipNature><directOrIndirectOwnership><value>D</value></directOrIndirectOwnership></ownershipNature>
+    </nonDerivativeHolding>
+  </nonDerivativeTable>
+</ownershipDocument>

@@ -1,0 +1,5 @@
+{"_comment":"SYNTHETIC TEST FIXTURE: shape follows the Q4 Inc. PressRelease.svc JSON service, not a real response.",
+ "GetPressReleaseListResult":[
+  {"Headline":"GameStop Announces Synthetic Quarterly Results","LinkToDetailPage":"/news-releases/news-release-details/synthetic-quarterly-results","PressReleaseDate":"09/10/2026 16:05:00","ShortBody":"<p>Synthetic summary &amp; text.</p>"},
+  {"Headline":"GameStop Updates Warrant Terms","LinkToDetailPage":"https://investor.gamestop.com/news-releases/news-release-details/synthetic-warrant-update","PressReleaseDate":"10/02/2026 08:00:00"}
+ ]}

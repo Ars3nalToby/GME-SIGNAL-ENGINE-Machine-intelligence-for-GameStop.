@@ -1,0 +1,18 @@
+{
+  "_comment": "SYNTHETIC TEST FIXTURE: not a real response. Shape follows data.sec.gov/submissions (columnar filings.recent).",
+  "cik": "1326380",
+  "name": "GameStop Corp.",
+  "tickers": ["GME"],
+  "filings": {
+    "recent": {
+      "accessionNumber": ["0000000000-26-000030", "0000000000-26-000029", "0000000000-26-000028", "0000000000-26-000027", "0000000000-26-000026", "0000000000-26-000025", "0000000000-26-000024"],
+      "form": ["4", "8-K", "SCHEDULE 13D/A", "425", "10-Q", "4", "SC 13G/A"],
+      "filingDate": ["2026-10-05", "2026-10-05", "2026-10-02", "2026-10-01", "2026-09-10", "2026-09-02", "2026-02-14"],
+      "acceptanceDateTime": ["2026-10-05T16:30:12.000Z", "2026-10-05T12:05:00.000Z", "2026-10-02T14:00:00.000Z", "2026-10-01T09:45:10.000Z", "2026-09-10T20:15:00.000Z", "2026-09-02T18:00:00.000Z", "2026-02-14T15:00:00.000Z"],
+      "items": ["", "2.02,9.01", "", "", "", "", ""],
+      "primaryDocument": ["xslF345X05/form4.xml", "d1.htm", "xslSCHEDULE_13D_X02/primary_doc.xml", "d425.htm", "q.htm", "xslF345X05/form4b.xml", "g.htm"],
+      "primaryDocDescription": ["FORM 4", "8-K", "SCHEDULE 13D/A", "425", "10-Q", "FORM 4", "SC 13G/A"],
+      "reportDate": ["2026-10-01", "2026-10-05", "", "", "2026-08-01", "2026-09-01", ""]
+    }
+  }
+}

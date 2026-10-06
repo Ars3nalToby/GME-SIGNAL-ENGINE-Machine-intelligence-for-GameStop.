@@ -1,0 +1,17 @@
+{
+  "_comment": "SYNTHETIC TEST FIXTURE: not a real response.",
+  "cik": "1065088",
+  "name": "EBAY INC",
+  "filings": {
+    "recent": {
+      "accessionNumber": ["0000000000-26-000040", "0000000000-26-000039"],
+      "form": ["SC 14D9", "10-Q"],
+      "filingDate": ["2026-10-04", "2026-07-30"],
+      "acceptanceDateTime": ["2026-10-04T13:00:00.000Z", "2026-07-30T20:00:00.000Z"],
+      "items": ["", ""],
+      "primaryDocument": ["d14d9.htm", "q.htm"],
+      "primaryDocDescription": ["SC 14D9", "10-Q"],
+      "reportDate": ["", "2026-06-30"]
+    }
+  }
+}

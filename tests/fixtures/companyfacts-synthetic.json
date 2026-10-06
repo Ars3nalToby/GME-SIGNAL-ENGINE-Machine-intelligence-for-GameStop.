@@ -1,0 +1,17 @@
+{"_comment":"SYNTHETIC TEST FIXTURE: shape follows data.sec.gov companyfacts; tags/values invented.",
+ "cik":1326380,"entityName":"GameStop Corp.",
+ "facts":{
+  "dei":{"EntityCommonStockSharesOutstanding":{"label":"Shares Outstanding","units":{"shares":[
+    {"end":"2026-03-10","val":447000000,"accn":"0000000000-26-000100","fy":2025,"fp":"FY","form":"10-K","filed":"2026-03-20"},
+    {"end":"2026-06-05","val":449000000,"accn":"0000000000-26-000101","fy":2026,"fp":"Q1","form":"10-Q","filed":"2026-06-10"}]}}},
+  "us-gaap":{
+   "CashAndCashEquivalentsAtCarryingValue":{"label":"Cash","units":{"USD":[
+    {"end":"2026-01-31","val":1000000000,"accn":"0000000000-26-000100","fy":2025,"fp":"FY","form":"10-K","filed":"2026-03-20"},
+    {"end":"2026-05-02","val":1100000000,"accn":"0000000000-26-000101","fy":2026,"fp":"Q1","form":"10-Q","filed":"2026-06-10"},
+    {"end":"2026-05-02","val":1100000000,"accn":"0000000000-26-000102","fy":2026,"fp":"Q1","form":"10-Q/A","filed":"2026-06-20"}]}},
+   "MarketableSecuritiesCurrent":{"units":{"USD":[{"end":"2026-05-02","val":500000000,"accn":"0000000000-26-000101","fy":2026,"fp":"Q1","form":"10-Q","filed":"2026-06-10"}]}},
+   "ConvertibleNotesPayable":{"units":{"USD":[{"end":"2026-05-02","val":2000000000,"accn":"0000000000-26-000101","fy":2026,"fp":"Q1","form":"10-Q","filed":"2026-06-10"}]}},
+   "NetIncomeLoss":{"units":{"USD":[{"start":"2026-02-01","end":"2026-05-02","val":5,"accn":"0000000000-26-000101","form":"10-Q","filed":"2026-06-10"}]}}
+  },
+  "gme":{"CryptoAssetFairValueSynthetic":{"units":{"USD":[{"end":"2026-05-02","val":123,"accn":"0000000000-26-000101","form":"10-Q","filed":"2026-06-10"}]}}}
+ }}

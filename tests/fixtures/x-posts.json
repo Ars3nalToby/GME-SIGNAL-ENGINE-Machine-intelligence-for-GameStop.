@@ -1,0 +1,6 @@
+{"_comment":"SYNTHETIC TEST FIXTURE","data":[
+ {"id":"900000000000000001","text":"synthetic original post https://t.co/x","created_at":"2026-10-05T10:00:00.000Z"},
+ {"id":"900000000000000002","text":"@someone synthetic reply","created_at":"2026-10-05T09:00:00.000Z","referenced_tweets":[{"type":"replied_to","id":"5"}]},
+ {"id":"900000000000000003","text":"RT @x: synthetic repost","created_at":"2026-10-05T08:00:00.000Z","referenced_tweets":[{"type":"retweeted","id":"6"}]},
+ {"id":"900000000000000004","text":"no timestamp post"}
+],"meta":{"result_count":4}}

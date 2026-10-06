@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SYNTHETIC TEST FIXTURE: element names are inferred from the public EDGAR 13D/G XML spec, NOT from a real filing -->
+<edgarSubmission xmlns="http://www.sec.gov/edgar/schedule13D">
+  <headerData>
+    <submissionType>SCHEDULE 13D/A</submissionType>
+    <filerInfo><filer><filerCredentials><cik>0000000001</cik></filerCredentials></filer></filerInfo>
+  </headerData>
+  <formData>
+    <coverPageHeader>
+      <securitiesClassTitle>Class A Common Stock, $0.001 par value</securitiesClassTitle>
+      <dateOfEvent>09/30/2026</dateOfEvent>
+      <issuerInfo><issuerCIK>0001326380</issuerCIK><issuerName>GameStop Corp.</issuerName></issuerInfo>
+    </coverPageHeader>
+    <reportingPersons>
+      <reportingPersonInfo>
+        <reportingPersonName>Ryan Cohen</reportingPersonName>
+        <soleVotingPower>1300000.00</soleVotingPower>
+        <sharedVotingPower>0.00</sharedVotingPower>
+        <soleDispositivePower>1300000.00</soleDispositivePower>
+        <sharedDispositivePower>0.00</sharedDispositivePower>
+        <aggregateAmountOwned>1300000.00</aggregateAmountOwned>
+        <percentOfClass>0.3</percentOfClass>
+        <typeOfReportingPerson>IN</typeOfReportingPerson>
+      </reportingPersonInfo>
+    </reportingPersons>
+  </formData>
+</edgarSubmission>

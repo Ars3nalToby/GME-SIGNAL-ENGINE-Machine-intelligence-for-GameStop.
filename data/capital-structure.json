@@ -1,0 +1,6 @@
+{
+  "_readme": "Curated from filings only. Every non-null field needs a matching entry in `sources` ({field,label,url,accession,section}); run `npm run verify:capital`. Nothing is pre-filled: it must be read from the 8-Ks (items 1.01/2.03), indenture exhibits and the latest 10-Q/10-K notes.",
+  "verifiedAt": null,
+  "instruments": [],
+  "warrants": null
+}
