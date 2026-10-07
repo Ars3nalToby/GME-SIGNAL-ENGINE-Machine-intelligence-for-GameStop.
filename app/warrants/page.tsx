@@ -5,7 +5,7 @@ import { readPositionForRender } from "@/lib/config/position";
 import { WARRANT_TERMS } from "@/lib/config/watch";
 import { loadMarket, QUOTE_STALE_MS, warrantMath } from "@/lib/sources/market";
 import { fmtBrisbane, fmtExpiryNY, parseDeadline } from "@/lib/time";
-import { fmtInt, fmtUsd, fmtWhen } from "@/lib/format";
+import { fmtInt, fmtUsd, fmtWhen, irPageProblem } from "@/lib/format";
 import { safeHref } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
@@ -98,9 +98,12 @@ export default async function WarrantsPage() {
           {related.length === 0 && <li className="py-6 text-center text-[12px] text-muted">No warrant-tagged filings or releases on the wire right now.</li>}
           {related.map((i) => <CompactItem key={i.id} item={i} note={ADJUST.test(`${i.title} ${i.summary ?? ""} ${i.tags.join(" ")}`) ? "TERMS?" : undefined} />)}
         </ul>
-        <h3 className="panel-title mt-5 mb-2">GameStop IR — warrant dividend page</h3>
+        <div className="mt-6 mb-2 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="panel-title">GameStop IR — warrant dividend page</h3>
+          <a className="btn" href={WARRANT_TERMS.termsUrl} target="_blank" rel="noopener noreferrer">Open IR warrant page ↗</a>
+        </div>
         <ul className="panel divide-y divide-white/[0.05]">
-          {irPage.length === 0 && <li className="p-4 text-center text-[12px] text-muted">{feed.irPages?.errors.warrants ? `IR page unavailable — ${feed.irPages.errors.warrants}` : "Nothing extracted from the IR page."}</li>}
+          {irPage.length === 0 && <li className="p-4 text-center text-[12px] text-muted">{irPageProblem(feed.irPages?.errors.warrants)}</li>}
           {irPage.map((e) => (
             <li key={e.url} className="p-3 text-[13px]"><a className="hover:text-blue" href={safeHref(e.url)} target="_blank" rel="noopener noreferrer">{e.title} ↗</a>{e.date && <span className="mono ml-2 text-[11px] text-muted">{fmtWhen({ publishedAt: e.date, dateOnly: e.dateOnly }, true)}</span>}<span className="tag ml-2">{e.kind}</span></li>
           ))}

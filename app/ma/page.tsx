@@ -1,7 +1,8 @@
 import { CompactItem, PageTitle } from "@/components/CompactItem";
 import { buildFeed } from "@/lib/feed";
 import { buildMa } from "@/lib/ma";
-import { fmtWhen } from "@/lib/format";
+import { fmtWhen, irPageProblem } from "@/lib/format";
+import { IR_PAGES } from "@/lib/config/watch";
 import { safeHref } from "@/lib/url";
 import type { WireItem } from "@/lib/types";
 
@@ -61,9 +62,12 @@ export default async function MaPage() {
       </div>
 
       <section className="mt-8" aria-labelledby="irdoc">
-        <h3 id="irdoc" className="panel-title mb-2">GameStop IR — eBay page (news, documents, SEC filings as listed by the company)</h3>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <h3 id="irdoc" className="panel-title">GameStop IR — eBay page (news, documents, SEC filings as listed by the company)</h3>
+          <a className="btn" href={IR_PAGES.ebay} target="_blank" rel="noopener noreferrer">Open IR eBay page ↗</a>
+        </div>
         <ul className="panel divide-y divide-white/[0.05]">
-          {doc.length === 0 && <li className="p-5 text-center text-[12px] text-muted">{feed.irPages?.errors.ebay ? `IR eBay page unavailable — ${feed.irPages.errors.ebay}` : "Nothing extracted from the IR eBay page."}</li>}
+          {doc.length === 0 && <li className="p-5 text-center text-[12px] text-muted">{irPageProblem(feed.irPages?.errors.ebay)}</li>}
           {doc.map((e) => (
             <li key={e.url} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 p-3 text-[13px]">
               <span className="tag">{e.kind}</span>

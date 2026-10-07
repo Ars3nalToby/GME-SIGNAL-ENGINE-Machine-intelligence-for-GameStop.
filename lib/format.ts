@@ -45,3 +45,11 @@ export function sourceColor(i: Pick<WireItem, "sourceType">): string {
     default: return "#8791a6";
   }
 }
+
+/** friendly wording for an IR page fetch error */
+export function irPageProblem(err: string | undefined): string {
+  if (!err) return "Nothing was extracted from the IR page.";
+  return /403/.test(err)
+    ? "GameStop's website refuses automated access to this page (HTTP 403), so it can't be listed here. Open it directly with the link above."
+    : `IR page unavailable — ${err}`;
+}

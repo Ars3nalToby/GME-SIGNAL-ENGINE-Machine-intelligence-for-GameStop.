@@ -256,3 +256,12 @@ describe("IR page requests identify themselves honestly", () => {
     }
   });
 });
+
+describe("IR page problems are explained plainly", () => {
+  it("403 gets a human explanation; other errors keep their text", async () => {
+    const { irPageProblem } = await import("@/lib/format");
+    expect(irPageProblem("HTTP 403")).toContain("refuses automated access");
+    expect(irPageProblem("HTTP 503")).toBe("IR page unavailable — HTTP 503");
+    expect(irPageProblem(undefined)).toBe("Nothing was extracted from the IR page.");
+  });
+});
