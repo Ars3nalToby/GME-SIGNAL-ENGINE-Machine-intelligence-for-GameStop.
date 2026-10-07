@@ -20,6 +20,17 @@ import type { SourceResult, WireItem } from "../types";
 
 const IR_TTL = 5 * 60_000;
 
+/**
+ * Honest, descriptive identification for the server-rendered IR pages (they answered HTTP 403 to a bare
+ * request). Deliberately NOT a browser impersonation: if the site still refuses, the page stays empty and
+ * Source Health says so.
+ */
+export const IR_PAGE_HEADERS = {
+  "user-agent": "GMELiveWire/1.0 (personal research dashboard; polls public IR pages every 5 minutes)",
+  accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5",
+  "accept-language": "en-US,en;q=0.8",
+} as const;
+
 // ---------------- Q4 JSON feed ----------------
 const Q4Item = z
   .object({
@@ -165,7 +176,7 @@ export async function loadIrPages(force = false): Promise<IrPages> {
   const errors: Record<string, string> = {};
   const one = async (id: keyof typeof IR_PAGES, url: string) => {
     try {
-      const r = await cache.get(`ir:page:${id}`, IR_TTL, async () => parseIrPage(await getText(url, { revalidate: 300 }), url), { force });
+      const r = await cache.get(`ir:page:${id}`, IR_TTL, async () => parseIrPage(await getText(url, { revalidate: 300, headers: { ...IR_PAGE_HEADERS } }), url), { force });
       if (r.stale && r.error) errors[id] = `STALE: ${r.error}`;
       return r.value;
     } catch (e) {

@@ -238,3 +238,21 @@ describe("audit #9: warrant symbol", () => {
     void text;
   });
 });
+
+describe("IR page requests identify themselves honestly", () => {
+  it("send a descriptive, non-browser user-agent on the server-rendered IR pages", async () => {
+    const { loadIrPages, IR_PAGE_HEADERS } = await import("@/lib/sources/ir");
+    cache.clear();
+    const seen: Record<string, string>[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      seen.push({ url: String(input), ...(init?.headers as Record<string, string>) });
+      return new Response("<html></html>", { status: 200 });
+    }));
+    await loadIrPages(true);
+    expect(seen.length).toBe(3);
+    for (const s of seen) {
+      expect(s["user-agent"]).toBe(IR_PAGE_HEADERS["user-agent"]);
+      expect(s["user-agent"]).not.toMatch(/Mozilla|Chrome|Safari|Gecko/i); // no browser impersonation
+    }
+  });
+});
