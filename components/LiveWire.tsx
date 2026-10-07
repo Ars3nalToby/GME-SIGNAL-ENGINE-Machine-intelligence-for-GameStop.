@@ -9,6 +9,8 @@ import { useNow } from "@/lib/client/useNow";
 import { dayBucket, relAge } from "@/lib/time";
 import { useFeed } from "./FeedProvider";
 import ActivityChart from "./ActivityChart";
+import NewsDrift from "./NewsDrift";
+import Reader from "./Reader";
 import ItemCard from "./ItemCard";
 import Timeline from "./Timeline";
 import RcAlert, { rcAlertItems } from "./RcAlert";
@@ -50,6 +52,9 @@ export default function LiveWire({ position, market }: { position: Position; mar
   const [highOnly, setHighOnly] = usePersisted<boolean>("gmelw:highOnly", false);
   const [words, setWords] = usePersisted<string[]>("gmelw:words", DEFAULT_WATCH_WORDS);
   const [savedMap, setSavedMap] = usePersisted<Record<string, WireItem>>("gmelw:saved", {});
+  const [readMap, setReadMap] = usePersisted<Record<string, number>>("gmelw:read", {});
+  const [reader, setReader] = useState<{ list: WireItem[]; index: number } | null>(null);
+  const [dismissed, setDismissed] = useState<string | undefined>();
   const [query, setQuery] = useState("");
   const [pageState, setPageState] = useState<{ key: string; n: number }>({ key: "", n: PAGE });
   const lastSeenAt = useBaseline("gmelw:lastSeenAt");
@@ -67,6 +72,27 @@ export default function LiveWire({ position, market }: { position: Position; mar
     };
   }, []);
 
+  const readIds = useMemo(() => new Set(Object.keys(readMap)), [readMap]);
+  const markRead = (id: string) =>
+    setReadMap((m) => {
+      if (m[id]) return m;
+      const next = { ...m, [id]: Date.now() };
+      const keys = Object.keys(next);
+      if (keys.length > 400) for (const k of keys.sort((a, b) => next[a]! - next[b]!).slice(0, keys.length - 400)) delete next[k];
+      return next;
+    });
+  const openReader = (list: WireItem[], index: number) => {
+    setReader({ list, index });
+    const it = list[index];
+    if (it) markRead(it.id);
+  };
+  const navigateReader = (index: number) => {
+    setReader((r) => (r ? { ...r, index } : r));
+    const it = reader?.list[index];
+    if (it) markRead(it.id);
+  };
+  const newIdSet = useMemo(() => new Set(feed.newIds), [feed.newIds]);
+  const showToast = feed.newIds.length > 0 && dismissed !== feed.generatedAt && !reader;
   const savedIds = useMemo(() => new Set(Object.keys(savedMap)), [savedMap]);
   const saved = useMemo(() => Object.values(savedMap).sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt)), [savedMap]);
   const visible = useMemo(() => applyFilters(feed.items, { filter, highOnly, query, savedIds, saved }), [feed.items, filter, highOnly, query, savedIds, saved]);
@@ -118,6 +144,8 @@ export default function LiveWire({ position, market }: { position: Position; mar
         </div>
         <ActivityChart items={feed.items} now={now} />
       </section>
+
+      <NewsDrift items={feed.items} now={now} readIds={readIds} onCatch={openReader} />
 
       <section className="mb-9 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4" aria-label="Wire summary">
         <Tile label="Wire items" value={feed.loadedOnce ? String(feed.items.length) : "—"} sub="deduplicated across sources" />
@@ -197,7 +225,7 @@ export default function LiveWire({ position, market }: { position: Position; mar
                   <ul className="space-y-3">
                     {g.rows.map((i) => (
                       <li key={i.id}>
-                        <ItemCard item={i} saved={savedIds.has(i.id)} onToggleSave={() => toggleSave(i)} isNew={lastSeenAt !== null && Date.parse(i.publishedAt) > lastSeenAt && i.signal === "high"} />
+                        <ItemCard item={i} saved={savedIds.has(i.id)} onToggleSave={() => toggleSave(i)} isNew={lastSeenAt !== null && Date.parse(i.publishedAt) > lastSeenAt && i.signal === "high"} fresh={newIdSet.has(i.id)} read={readIds.has(i.id)} onRead={() => openReader(visible, visible.indexOf(i))} />
                       </li>
                     ))}
                   </ul>
@@ -220,6 +248,28 @@ export default function LiveWire({ position, market }: { position: Position; mar
           <SignalKey />
         </aside>
       </div>
+      {reader && reader.list[reader.index] && (
+        <Reader
+          list={reader.list}
+          index={reader.index}
+          saved={savedIds.has(reader.list[reader.index]!.id)}
+          onToggleSave={() => toggleSave(reader.list[reader.index]!)}
+          onNavigate={navigateReader}
+          onClose={() => setReader(null)}
+        />
+      )}
+      {showToast && (
+        <button
+          type="button"
+          className="toast"
+          onClick={() => { setDismissed(feed.generatedAt); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+          aria-live="polite"
+        >
+          <span className="dot pulse !h-2 !w-2 bg-red" aria-hidden />
+          {feed.newIds.length} new item{feed.newIds.length > 1 ? "s" : ""} on the wire{feed.newHighIds.length ? ` · ${feed.newHighIds.length} HIGH` : ""}
+          <span className="text-muted">· jump to top</span>
+        </button>
+      )}
     </div>
   );
 }

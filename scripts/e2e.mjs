@@ -74,6 +74,33 @@ await page.reload({ waitUntil: "networkidle" });
 assert.ok(await page.getByRole("button", { name: "Timeline" }).getAttribute("aria-pressed") === "true");
 ok("timeline view, persisted");
 
+await page.getByRole("button", { name: "Cards" }).click();
+await page.waitForSelector("article");
+// catch a drifting headline → reader opens, keyboard works, read state persists
+const chip = page.locator("button.dchip:not([aria-hidden])").first();
+assert.ok(await chip.count(), "no drifting headlines");
+await chip.click({ force: true });
+const dlg = page.getByRole("dialog");
+await dlg.waitFor();
+const readerTitle = await dlg.locator("h2").innerText();
+assert.ok(readerTitle.length > 3);
+assert.ok(await dlg.getByRole("link", { name: /Open original source/ }).count() === 1, "reader must link the original");
+await page.keyboard.press("ArrowRight");
+await page.waitForTimeout(150);
+assert.notEqual(await dlg.locator("h2").innerText(), readerTitle, "next item");
+await page.keyboard.press("Escape");
+await dlg.waitFor({ state: "detached" });
+ok("drifting headline opens the reader; arrow keys navigate; Esc closes");
+await page.reload({ waitUntil: "networkidle" });
+await page.waitForSelector("article");
+assert.ok((await page.locator("button.dchip.dchip-read").count()) >= 1, "read state persisted");
+ok("read state persists across reload");
+await page.locator("article").first().getByRole("button", { name: /^READ$|✓ READ/ }).click();
+await page.getByRole("dialog").waitFor();
+await page.getByRole("button", { name: "Close reader" }).click();
+await page.getByRole("dialog").waitFor({ state: "detached" });
+ok("card READ button opens and closes the reader");
+
 // external links are safe
 for (const a of await page.locator("article a[href^=http]").all()) {
   assert.equal(await a.getAttribute("target"), "_blank");

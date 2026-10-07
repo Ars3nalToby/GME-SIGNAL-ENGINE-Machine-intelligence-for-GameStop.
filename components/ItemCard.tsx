@@ -40,7 +40,7 @@ const Ext = ({ href, children, strong }: { href?: string; children: React.ReactN
   );
 };
 
-export default function ItemCard({ item, saved, onToggleSave, isNew }: { item: WireItem; saved: boolean; onToggleSave: () => void; isNew?: boolean }) {
+export default function ItemCard({ item, saved, onToggleSave, isNew, fresh, read, onRead }: { item: WireItem; saved: boolean; onToggleSave: () => void; isNew?: boolean; fresh?: boolean; read?: boolean; onRead?: () => void }) {
   const [reasons, setReasons] = useState(false);
   const [outlets, setOutlets] = useState(false);
   const person = isPeopleItem(item) ? item.people[0] : undefined;
@@ -52,7 +52,7 @@ export default function ItemCard({ item, saved, onToggleSave, isNew }: { item: W
   const pending = item.parseNote === "pending";
 
   return (
-    <article className={`card ${item.signal === "high" ? "card-high" : ""} ${rule}`} aria-label={item.title}>
+    <article className={`card ${item.signal === "high" ? "card-high" : ""} ${rule} ${fresh ? "card-fresh" : ""} ${read ? "opacity-80" : ""}`} aria-label={item.title}>
       <div className="card-grid">
         <Stamp iso={item.publishedAt} dateOnly={item.dateOnly} />
 
@@ -94,6 +94,7 @@ export default function ItemCard({ item, saved, onToggleSave, isNew }: { item: W
               </button>
               <Ext href={filingIndex?.url}>{filingIndex?.label.toUpperCase() ?? ""}</Ext>
               {others.map((l) => <Ext key={l.url} href={l.url}>{l.label}</Ext>)}
+              {onRead && <button type="button" onClick={onRead} className="mono min-h-[32px] rounded-full bg-white/[0.07] px-3.5 text-[11px] tracking-[0.1em] text-ink uppercase transition-colors hover:bg-white/[0.14]">{read ? "✓ READ" : "READ"}</button>}
               <Ext href={item.url} strong>OPEN ↗</Ext>
             </span>
           </div>

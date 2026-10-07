@@ -20,6 +20,8 @@ export type FeedState = {
   refresh: () => void;
   /** ids of HIGH items that appeared since the previous successful poll (for aria-live) */
   newHighIds: string[];
+  /** ids that arrived in the latest poll (never on the first load) */
+  newIds: string[];
 };
 
 const Ctx = createContext<FeedState | null>(null);
@@ -38,6 +40,7 @@ export function FeedProvider({ children }: { children: ReactNode }) {
   const [loadedOnce, setLoadedOnce] = useState(false);
   const [lastFetchAt, setLastFetchAt] = useState<number | undefined>();
   const [newHighIds, setNewHighIds] = useState<string[]>([]);
+  const [newIds, setNewIds] = useState<string[]>([]);
   const seen = useRef<Set<string> | null>(null);
   const inflight = useRef<AbortController | null>(null);
 
@@ -53,7 +56,10 @@ export function FeedProvider({ children }: { children: ReactNode }) {
       const j = (await res.json()) as { items: WireItem[]; sources: SourceHealth[]; xWatch?: XWatchEntry[]; xConnected?: boolean; generatedAt: string };
       setData({ items: j.items, sources: j.sources, xWatch: j.xWatch ?? [], xConnected: !!j.xConnected, generatedAt: j.generatedAt });
       const highs = j.items.filter((i) => i.signal === "high").map((i) => i.id);
-      if (seen.current) setNewHighIds(highs.filter((id) => !seen.current!.has(id)));
+      if (seen.current) {
+        setNewHighIds(highs.filter((id) => !seen.current!.has(id)));
+        setNewIds(j.items.filter((i) => !seen.current!.has(i.id)).map((i) => i.id));
+      }
       seen.current = new Set(j.items.map((i) => i.id));
       setFailed(false);
       setError(undefined);
@@ -96,8 +102,8 @@ export function FeedProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   const value = useMemo<FeedState>(
-    () => ({ ...data, loading, failed, error, loadedOnce, lastFetchAt, refresh: () => void refresh(), newHighIds }),
-    [data, loading, failed, error, loadedOnce, lastFetchAt, refresh, newHighIds],
+    () => ({ ...data, loading, failed, error, loadedOnce, lastFetchAt, refresh: () => void refresh(), newHighIds, newIds }),
+    [data, loading, failed, error, loadedOnce, lastFetchAt, refresh, newHighIds, newIds],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

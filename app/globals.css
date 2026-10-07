@@ -172,3 +172,59 @@
   .chip { min-height: 44px; }
   .seg a, .seg button { min-height: 44px; }
 }
+
+/* ---------- news drift ---------- */
+@layer components {
+  .drift {
+    position: relative; overflow: hidden; border-radius: 16px; border: 1px solid var(--color-line);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+    mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  }
+  .drift-lane { display: flex; width: max-content; gap: 12px; padding: 7px 0; animation: drift var(--dur, 70s) linear infinite; animation-delay: var(--delay, 0s); will-change: transform; }
+  .drift-lane.rev { animation-direction: reverse; }
+  .drift:hover .drift-lane, .drift:focus-within .drift-lane, .drift.paused .drift-lane { animation-play-state: paused; }
+  .dchip {
+    display: inline-flex; align-items: center; gap: 10px; flex: none; max-width: 460px; text-align: left; cursor: pointer;
+    border: 1px solid var(--color-line); border-radius: 999px; padding: 9px 16px 9px 13px; background: rgba(255, 255, 255, 0.035);
+    font-size: 13.5px; color: var(--color-ink2); transition: transform 0.18s, border-color 0.18s, background 0.18s, color 0.18s;
+  }
+  .dchip:hover, .dchip:focus-visible { transform: translateY(-2px) scale(1.03); border-color: var(--color-line2); background: rgba(255, 255, 255, 0.09); color: var(--color-ink); }
+  .dchip-high { border-color: rgba(229, 36, 54, 0.5); background: rgba(229, 36, 54, 0.11); color: var(--color-ink); font-weight: 600; font-size: 14.5px; padding-top: 11px; padding-bottom: 11px; box-shadow: 0 0 26px -10px rgba(229, 36, 54, 0.7); }
+  .dchip-read { opacity: 0.5; }
+  .dchip-read:hover { opacity: 1; }
+  .dchip .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @keyframes drift { to { transform: translateX(-50%); } }
+
+  /* ---------- reader ---------- */
+  .reader-backdrop { position: fixed; inset: 0; z-index: 60; background: rgba(3, 4, 7, 0.62); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); animation: fade 0.2s ease both; }
+  .reader {
+    position: fixed; z-index: 61; top: 0; right: 0; bottom: 0; width: min(580px, 100vw); overflow-y: auto; display: flex; flex-direction: column;
+    background: linear-gradient(180deg, #0f1420, #0a0d14); border-left: 1px solid var(--color-line2); box-shadow: -30px 0 80px -20px rgba(0, 0, 0, 0.8);
+    animation: slide 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  @media (max-width: 768px) {
+    .reader { top: 6vh; width: 100vw; border-left: 0; border-top: 1px solid var(--color-line2); border-radius: 20px 20px 0 0; animation-name: sheet; }
+  }
+
+  /* ---------- arrivals ---------- */
+  .card-fresh { animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both, flash 2.8s ease-out 0.2s both; }
+  .toast {
+    position: fixed; left: 50%; bottom: 22px; z-index: 50; transform: translateX(-50%); animation: toast 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    display: inline-flex; align-items: center; gap: 12px; border-radius: 999px; padding: 11px 20px; cursor: pointer;
+    background: rgba(18, 23, 35, 0.92); border: 1px solid rgba(229, 36, 54, 0.5); box-shadow: 0 18px 50px -10px rgba(0, 0, 0, 0.8), 0 0 30px -8px rgba(229, 36, 54, 0.6);
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; color: var(--color-ink); backdrop-filter: blur(12px);
+  }
+}
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes sheet { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes toast { from { opacity: 0; transform: translate(-50%, 16px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes flash { 0% { box-shadow: 0 0 0 0 rgba(90, 167, 255, 0.55), 0 1px 0 rgba(255,255,255,0.04) inset; border-color: rgba(90, 167, 255, 0.7); } 100% { box-shadow: 0 0 0 14px rgba(90, 167, 255, 0), 0 1px 0 rgba(255,255,255,0.04) inset; } }
+@media (prefers-reduced-motion: reduce) {
+  .drift { mask-image: none; -webkit-mask-image: none; overflow-x: auto; }
+  .drift-lane { animation: none !important; }
+  .drift-dup { display: none; }
+  .reader, .reader-backdrop, .toast, .card-fresh { animation: none !important; }
+  .dchip { transition: none; }
+}
