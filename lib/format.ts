@@ -35,3 +35,13 @@ export function fmtPrice(n: number | null | undefined): string {
   const d = Math.min(4, Math.max(2, dec));
   return `$${n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d })}`;
 }
+
+/** categorical identity colour per source type (identity, not status) */
+export function sourceColor(i: Pick<WireItem, "sourceType">): string {
+  switch (i.sourceType) {
+    case "sec": return "#5aa7ff";
+    case "ir": return "#a496ff";
+    case "x": return "#f4f6fb";
+    default: return "#8791a6";
+  }
+}

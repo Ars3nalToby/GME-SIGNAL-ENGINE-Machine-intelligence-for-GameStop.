@@ -15,8 +15,8 @@ import WarrantCountdown from "./WarrantCountdown";
 export type MarketView = { status: "connected" | "setup" | "error"; provider?: string; gme?: { price: number; asOf: string | null } | null; warrant?: { price: number; asOf: string | null } | null; note?: string };
 
 const Panel = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <section className="panel p-3.5">
-    <h2 className="panel-title mb-2.5">{title}</h2>
+  <section className="panel p-5">
+    <h2 className="panel-title mb-4">{title}</h2>
     {children}
   </section>
 );
@@ -34,17 +34,17 @@ export function SourceHealthPanel({ sources, failed, error }: { sources: SourceH
     <Panel title="Source health">
       {failed && <p className="mono mb-2 text-[11px] text-red">/api/feed unavailable{error ? ` — ${error}` : ""}</p>}
       {sources.length === 0 && !failed && <p className="mono text-[11px] text-muted">Waiting for first poll…</p>}
-      <ul className="space-y-2.5">
+      <ul className="-mx-2 space-y-0.5">
         {sources.map((s) => {
           const v = statusView(s, now);
           return (
-            <li key={s.id} className="text-[12px]">
-              <div className="flex items-center gap-2">
-                <span className="dot" style={{ background: v.c }} aria-hidden />
+            <li key={s.id} className="rounded-xl px-2 py-2.5 text-[12.5px] transition-colors hover:bg-white/[0.03]">
+              <div className="flex items-center gap-2.5">
+                <span className="dot" style={{ background: v.c, boxShadow: `0 0 9px ${v.c}` }} aria-hidden />
                 <span className="font-medium">{s.label}</span>
-                <span className="mono ml-auto text-[10.5px] tracking-[0.06em]" style={{ color: v.c }}>{v.t}</span>
+                <span className="mono ml-auto rounded-full border px-2 py-0.5 text-[9.5px] tracking-[0.08em]" style={{ color: v.c, borderColor: `color-mix(in srgb, ${v.c} 35%, transparent)`, background: `color-mix(in srgb, ${v.c} 8%, transparent)` }}>{v.t}</span>
               </div>
-              <div className="mono mt-0.5 pl-4 text-[10.5px] leading-relaxed text-muted">
+              <div className="mono mt-1 pl-[18px] text-[10.5px] leading-relaxed text-muted">
                 {s.status !== "setup" && <span>{s.itemCount} items{s.latencyMs != null ? ` · ${s.latencyMs}ms` : ""}{s.lastSuccessAt && now ? ` · ok ${relAge(s.lastSuccessAt, now)}` : ""}</span>}
                 {s.lastError && <div className="text-amber break-words">{s.lastError}</div>}
                 {s.note && s.note !== s.lastError && <div className="break-words">{s.note}</div>}
@@ -63,7 +63,7 @@ export function PositionPanel({ position, market }: { position: Position; market
   return (
     <Panel title="My position · warrant clock">
       <WarrantCountdown />
-      <div className="mt-3 border-t border-line pt-3">
+      <div className="mt-4 border-t border-line pt-4">
         {position.status === "invalid" && <p className="mono text-[11px] text-red">{position.error}. See README → My Position.</p>}
         {position.status === "hidden" && <p className="mono text-[11px] text-amber">Position hidden: this site has no password, so personal holdings are not shown. See README → My Position.</p>}
         {position.status === "empty" && <p className="mono text-[11px] text-muted">No position configured on the server (never committed) — see README → My Position.</p>}
@@ -115,7 +115,7 @@ export function WatchWordsPanel({ words, setWords, onPick }: { words: string[]; 
         {words.length === 0 && <span className="mono text-[11px] text-muted">No watch words.</span>}
       </div>
       <form className="mt-2.5 flex gap-2" onSubmit={(e) => { e.preventDefault(); const w = draft.trim(); if (w && !words.some((x) => x.toLowerCase() === w.toLowerCase())) setWords([...words, w]); setDraft(""); }}>
-        <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Add word" aria-label="Add watch word" maxLength={40} className="mono min-h-[40px] w-full min-w-0 rounded border border-line bg-bg px-2 text-[12px] placeholder:text-muted/60" />
+        <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Add word" aria-label="Add watch word" maxLength={40} className="mono min-h-[40px] w-full min-w-0 rounded-full border border-line bg-white/[0.03] px-4 text-[12px] placeholder:text-muted/60 focus:border-blue/60" />
         <button className="btn" type="submit">Add</button>
       </form>
     </Panel>
@@ -133,7 +133,7 @@ export function XWatchPanel({ xWatch, connected, items, status }: { xWatch: XWat
           const last = items.filter((i) => i.sourceType === "x" && i.handle === w.handle).sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt))[0];
           return (
             <li key={w.handle} className="flex items-center gap-2 text-[12px]">
-              <span className="mono grid h-7 w-7 place-items-center rounded border border-line text-[10.5px] font-semibold" aria-hidden>{w.initials}</span>
+              <span className="mono grid h-8 w-8 place-items-center rounded-full border border-line2 bg-white/[0.04] text-[10.5px] font-semibold" aria-hidden>{w.initials}</span>
               <span className="min-w-0 flex-1 truncate">{w.label} <span className="text-muted">@{w.handle}</span></span>
               <span className="mono text-[10.5px] text-muted">{connected ? (last ? (now ? relAge(last.publishedAt, now) : "—") : "no posts") : "—"}</span>
               <a className="link mono text-[10.5px]" href={safeHref(w.profileUrl)} target="_blank" rel="noopener noreferrer">PROFILE ↗</a>
@@ -146,14 +146,17 @@ export function XWatchPanel({ xWatch, connected, items, status }: { xWatch: XWat
 }
 
 export function SignalKey() {
+  const row = (cls: string, label: string, text: string) => (
+    <li className="flex items-center gap-3"><span className={`score ${cls} !cursor-default`}>{label}</span><span className="text-[12px] text-muted">{text}</span></li>
+  );
   return (
     <Panel title="Signal key">
-      <ul className="mono space-y-1.5 text-[11px]">
-        <li><span className="score score-high !cursor-default">HIGH ≥ 85</span> <span className="text-muted">material primary-source event</span></li>
-        <li><span className="score score-medium !cursor-default">MED 60–84</span> <span className="text-muted">relevant, check it</span></li>
-        <li><span className="score score-low !cursor-default">LOW &lt; 60</span> <span className="text-muted">context / noise</span></li>
+      <ul className="mono space-y-2.5">
+        {row("score-high", "HIGH ≥ 85", "material primary-source event")}
+        {row("score-medium", "MED 60–84", "relevant, worth a look")}
+        {row("score-low", "LOW < 60", "context / noise")}
       </ul>
-      <p className="mt-2.5 text-[12px] leading-snug text-muted">Score = how much this matters for understanding GameStop. Not a price prediction or trade signal. Tap a score to see why.</p>
+      <p className="mt-4 text-[12.5px] leading-relaxed text-muted">Score = how much this matters for understanding GameStop. <span className="text-ink2">Not a price prediction or trade signal.</span> Tap a score to see why.</p>
     </Panel>
   );
 }

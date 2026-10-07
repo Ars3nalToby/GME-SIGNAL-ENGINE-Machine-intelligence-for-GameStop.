@@ -99,7 +99,7 @@ export default async function WarrantsPage() {
           {related.map((i) => <CompactItem key={i.id} item={i} note={ADJUST.test(`${i.title} ${i.summary ?? ""} ${i.tags.join(" ")}`) ? "TERMS?" : undefined} />)}
         </ul>
         <h3 className="panel-title mt-5 mb-2">GameStop IR — warrant dividend page</h3>
-        <ul className="panel divide-y divide-[#1a2030]">
+        <ul className="panel divide-y divide-white/[0.05]">
           {irPage.length === 0 && <li className="p-4 text-center text-[12px] text-muted">{feed.irPages?.errors.warrants ? `IR page unavailable — ${feed.irPages.errors.warrants}` : "Nothing extracted from the IR page."}</li>}
           {irPage.map((e) => (
             <li key={e.url} className="p-3 text-[13px]"><a className="hover:text-blue" href={safeHref(e.url)} target="_blank" rel="noopener noreferrer">{e.title} ↗</a>{e.date && <span className="mono ml-2 text-[11px] text-muted">{fmtWhen({ publishedAt: e.date, dateOnly: e.dateOnly }, true)}</span>}<span className="tag ml-2">{e.kind}</span></li>

@@ -40,7 +40,7 @@ export default async function MaPage() {
 
       <section className="mb-6" aria-labelledby="tl">
         <h3 id="tl" className="panel-title mb-2">Timeline of confirmed events (SEC filings and official GameStop releases, oldest first)</h3>
-        <ol className="panel divide-y divide-[#1a2030]">
+        <ol className="panel divide-y divide-white/[0.05]">
           {view.timeline.length === 0 && <li className="p-6 text-center text-[12px] text-muted">No confirmed M&A events on the wire. 8-K relevance cannot be judged from the filing list alone — use the IR eBay page list below.</li>}
           {view.timeline.map((i) => (
             <li key={i.id} className="grid grid-cols-[132px_minmax(0,1fr)] gap-3 p-3 max-sm:grid-cols-1">
@@ -62,7 +62,7 @@ export default async function MaPage() {
 
       <section className="mt-8" aria-labelledby="irdoc">
         <h3 id="irdoc" className="panel-title mb-2">GameStop IR — eBay page (news, documents, SEC filings as listed by the company)</h3>
-        <ul className="panel divide-y divide-[#1a2030]">
+        <ul className="panel divide-y divide-white/[0.05]">
           {doc.length === 0 && <li className="p-5 text-center text-[12px] text-muted">{feed.irPages?.errors.ebay ? `IR eBay page unavailable — ${feed.irPages.errors.ebay}` : "Nothing extracted from the IR eBay page."}</li>}
           {doc.map((e) => (
             <li key={e.url} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 p-3 text-[13px]">

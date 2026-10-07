@@ -75,7 +75,7 @@ export default async function InsidersPage() {
 
       <section className="mt-8" aria-labelledby="s13">
         <h3 id="s13" className="panel-title mb-2">Schedule 13D / 13G filings on the wire</h3>
-        <ul className="panel divide-y divide-[#1a2030]">
+        <ul className="panel divide-y divide-white/[0.05]">
           {p.sched13.length === 0 && <li className="p-4 text-center text-[12px] text-muted">No structured 13D/13G filings parsed yet.</li>}
           {p.sched13.map((s) => (
             <li key={s.accession} className="p-3 text-[13px]">

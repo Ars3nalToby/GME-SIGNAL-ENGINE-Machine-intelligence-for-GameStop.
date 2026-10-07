@@ -6,13 +6,13 @@ import { safeHref } from "@/lib/url";
 export function CompactItem({ item, note }: { item: WireItem; note?: string }) {
   const href = safeHref(item.url);
   return (
-    <li className="border-b border-[#1a2030] py-2.5 last:border-0">
+    <li className="border-b border-white/[0.05] py-3.5 last:border-0">
       <div className="mono flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10.5px] tracking-[0.04em] text-muted">
         <span className="text-ink">{item.source}</span>
         <time dateTime={item.publishedAt}>{fmtWhen(item)}</time>
         <span>{kindLabel(item)}</span>
         {note && <span className="rounded border border-amber px-1.5 text-amber">{note}</span>}
-        <span className={`score score-${item.signal} !cursor-default !px-1.5 !py-0 ml-auto`} title={item.scoreReasons.join(" · ")}>{item.signal.toUpperCase()} {item.score}</span>
+        <span className={`score score-${item.signal} !cursor-default !px-2 !py-0.5 ml-auto`} title={item.scoreReasons.join(" · ")}>{item.signal.toUpperCase()} {item.score}</span>
       </div>
       <div className="mt-1 text-[13.5px] leading-snug font-medium">
         {href ? <a href={href} target="_blank" rel="noopener noreferrer" className="hover:text-blue">{item.title} <span className="text-muted">↗</span></a> : item.title}
@@ -27,9 +27,10 @@ export function CompactItem({ item, note }: { item: WireItem; note?: string }) {
 
 export function PageTitle({ title, sub }: { title: string; sub?: string }) {
   return (
-    <div className="mb-5">
-      <h2 className="mono text-[22px] font-semibold tracking-[0.06em]">{title}</h2>
-      {sub && <p className="mt-1 max-w-3xl text-[13px] leading-snug text-muted">{sub}</p>}
+    <div className="mb-8 pt-2 md:pt-5">
+      <p className="eyebrow flex items-center gap-2.5"><span className="inline-block h-px w-6 bg-red" aria-hidden />GME LIVE WIRE</p>
+      <h2 className="display mt-3 text-[38px] md:text-[54px]">{title}</h2>
+      {sub && <p className="mt-4 max-w-[70ch] text-[14.5px] leading-relaxed text-muted">{sub}</p>}
     </div>
   );
 }

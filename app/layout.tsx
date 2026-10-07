@@ -17,8 +17,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen antialiased">
         <FeedProvider>
           <Header />
-          <main className="mx-auto max-w-[1500px] px-4 pb-16 pt-5">{children}</main>
-          <footer className="mono mx-auto max-w-[1500px] px-4 pb-8 text-[10.5px] leading-relaxed text-muted">
+          <main className="mx-auto max-w-[1440px] px-4 pb-20 pt-6 md:px-6">{children}</main>
+          <footer className="mono mx-auto max-w-[1440px] border-t border-line px-4 py-8 text-[10.5px] leading-relaxed text-muted md:px-6">
             LIVE WIRE · refreshes every 60s — a polling wire, not a tick feed. Signal score = how much an item matters for understanding GameStop. Not a price prediction or trade signal. Not investment advice.
           </footer>
         </FeedProvider>

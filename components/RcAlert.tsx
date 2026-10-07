@@ -22,7 +22,7 @@ export function rcAlertItems(items: WireItem[], nowMs: number): WireItem[] {
 export default function RcAlert({ items, lastSeenAt }: { items: WireItem[]; lastSeenAt: number | null }) {
   if (items.length === 0) return null;
   return (
-    <section className="mb-4 space-y-2" aria-label="Ryan Cohen alert">
+    <section className="mb-5 space-y-3" aria-label="Ryan Cohen alert">
       {items.slice(0, 3).map((i) => {
         const txns = i.insiderTxns ?? [];
         const purchase = i.insiderClass === "purchase";
@@ -36,9 +36,10 @@ export default function RcAlert({ items, lastSeenAt }: { items: WireItem[]; last
           ? [["SHARES", a.shares === null ? "UNPARSED" : fmtInt(a.shares)], ["AVG PRICE", a.avgPrice === null ? "UNPARSED" : fmtUsd(a.avgPrice)], ["TOTAL COST", a.total === null ? "UNPARSED" : fmtUsd(a.total, 0)], ["HOLDINGS AFTER", last ? `${fmtInt(last.sharesOwnedAfter)} (${last.directIndirect === "D" ? "direct" : "indirect"})` : "UNPARSED"]]
           : [["WARRANTS EXERCISED", a.shares === null ? "UNPARSED" : fmtInt(a.shares)], ["EXERCISE PRICE", strike != null ? fmtUsd(strike) : "UNPARSED / mixed"], ["CASH COST", a.shares !== null && strike != null ? fmtUsd(a.shares * strike, 0) : "UNPARSED"], ["COMMON HOLDINGS AFTER", last ? `${fmtInt(last.sharesOwnedAfter)} (${last.directIndirect === "D" ? "direct" : "indirect"})` : "UNPARSED"]];
         return (
-          <div key={i.id} className="panel border-red/70 border-l-[3px] border-l-red bg-red/[0.06] p-4">
+          <div key={i.id} className="panel relative overflow-hidden !border-red/40 p-5 md:p-6" style={{ background: "linear-gradient(135deg, rgba(229,36,54,0.16), rgba(255,255,255,0.015) 60%)" }}>
+            <span aria-hidden className="pointer-events-none absolute -top-16 -left-10 h-40 w-40 rounded-full bg-red/25 blur-3xl" />
             <div className="mono flex flex-wrap items-center gap-3 text-[11px] tracking-[0.12em]">
-              <span className="rounded bg-red px-2 py-0.5 font-semibold text-white">RC</span>
+              <span className="rounded-md bg-red px-2 py-0.5 font-bold text-white">RC</span>
               <span className="font-semibold">{purchase ? "RYAN COHEN · FORM 4 PURCHASE" : "RYAN COHEN · WARRANT EXERCISE (NOT A PURCHASE)"}</span>
               {isNew && <span className="rounded border border-red px-1.5 py-0.5 text-red">NEW</span>}
               <span className="ml-auto text-muted">filed <RelOnly iso={i.publishedAt} /></span>
@@ -46,8 +47,8 @@ export default function RcAlert({ items, lastSeenAt }: { items: WireItem[]; last
             <dl className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
               {cells.map(([k, v]) => (
                 <div key={k}>
-                  <dt className="panel-title">{k}</dt>
-                  <dd className="mono mt-0.5 text-[15px] font-semibold">{v}</dd>
+                  <dt className="eyebrow">{k}</dt>
+                  <dd className="display mt-1 text-[22px] tabular-nums md:text-[26px]">{v.split(" (")[0]}{v.includes(" (") && <span className="mono ml-1.5 text-[11px] font-normal tracking-normal text-muted">({v.split(" (")[1]}</span>}</dd>
                 </div>
               ))}
             </dl>
